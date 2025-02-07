@@ -1,0 +1,41 @@
+export { };
+
+const sample: string = `3   4
+4   3
+2   5
+1   3
+3   9
+3   3`;
+
+const puzzle: string = await Deno.readTextFile("input.txt");
+
+var left: string[] = [];
+var right: string[] = [];
+
+for (const line of puzzle.split("\n")) {
+    var pair: string[] = [];
+
+    for (const m of line.matchAll(/(\S+)/g)) {
+        pair.push(m[0]);
+    }
+
+    if (pair.length < 2) {
+        break;
+    }
+
+    left.push(pair[0]);
+    right.push(pair[1]);
+}
+
+left.sort();
+right.sort();
+
+var total: number = 0
+
+for (var i = 0; i < left.length; i++) {
+    var l: string = left[i];
+    var r: string = right[i];
+    total += Math.abs(Number(l) - Number(r));
+}
+
+console.log(total);
