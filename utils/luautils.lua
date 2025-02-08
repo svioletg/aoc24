@@ -9,7 +9,7 @@ function read_all(fp)
             break
         end
         content = content .. line .. "\n"
-    end  
+    end
     io.close()
     return content
 end
@@ -53,4 +53,19 @@ function table.filtermatch(val, t)
         end
     end
     return filtered
+end
+
+-- Iterates over a table in pairs
+function table.pairwise(t)
+    local pw = {}
+    for n, i in pairs(t) do
+        if n + 1 == #t then
+            break
+        end
+        local pair = {}
+        table.insert(pair, t[n])
+        table.insert(pair, t[n + 1])
+        table.insert(pw, pair)
+    end
+    return pw
 end

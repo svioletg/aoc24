@@ -35,9 +35,9 @@ def strtomat(s: str, map_fn: Optional[Callable] = None) -> Matrix:
         mat.append(list(row if map_fn is None else map(map_fn, row)))
     return mat
 
-def mat_restring(mat: StrMatrix) -> str:
-    """Returns a matrix of strings as one single rectangular string."""
-    return '\n'.join([''.join(row) for row in mat])
+def mat_restring(mat: Matrix) -> str:
+    """Returns a matrix as one single rectangular string."""
+    return '\n'.join([''.join(map(str, row)) for row in mat])
 
 def matrix_from_dict(mat_dict: dict[Point, Any]) -> Matrix:
     """Creates a matrix from a dictionary of point keys to values."""
@@ -97,11 +97,12 @@ def traverse_matrix(mat: StrMatrix, start: Point, step: Point, bidi: bool = Fals
     pts = sorted(list(set(pts)))
     return pts
 
-def show_in_matrix(mat: StrMatrix, *pts: tuple[int, int]):
-    """Colors the given location(s) in a string matrix and returns it restrung."""
+def show_in_matrix(mat: Matrix, *pts: tuple[int, int], col: str = 'white on red', colmap: Optional[dict[Point, str]] = None):
+    """Colors the given location(s) in a matrix and returns it restrung."""
+    colmap = colmap or {}
     matcopy = deepcopy(mat)
     for pt in pts:
-        matset(matcopy, pt, colored(matget(matcopy, pt), 'white on red'))
+        matset(matcopy, pt, colored(matget(matcopy, pt), col if pt not in colmap else colmap[pt]))
     return mat_restring(matcopy)
 
 # Points, vectors
