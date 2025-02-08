@@ -2,7 +2,7 @@ from collections.abc import Callable, Generator
 from copy import deepcopy
 from operator import add, floordiv, mod, mul, neg, sub, truediv
 from pprint import pprint
-from typing import Any, Literal, overload
+from typing import Any, Literal, Optional, overload
 
 from colorama import Back, Fore, Style
 from IPython.display import clear_output
@@ -28,11 +28,11 @@ def colored(s: str, colstr: str) -> str:
     return f'{fg}{bg}{s}{Style.RESET_ALL}'
 
 # Matrices
-def strtomat(s: str) -> StrMatrix:
-    """Turns a string into a matrix - a list of lists of strings."""
-    mat: StrMatrix = []
+def strtomat(s: str, map_fn: Optional[Callable] = None) -> Matrix:
+    """Turns a string into a matrix. Will be a matrix of strings unless `map_fn` converts them to something else."""
+    mat: Matrix = []
     for row in s.split('\n'):
-        mat.append(list(row))
+        mat.append(list(row if map_fn is None else map(map_fn, row)))
     return mat
 
 def mat_restring(mat: StrMatrix) -> str:
@@ -68,10 +68,11 @@ def matset(mat: Matrix, pt: Point, val: str):
     """Sets the value of a point in `mat` to `val`."""
     mat[pt[0]][pt[1]] = val
 
-def mat_iter(mat: Matrix) -> Generator[Any, None, None]:
+def mat_iter(mat: Matrix) -> Generator[tuple[Point, Any], None, None]:
     """Iterates over every item in `mat` by every column in every row, as in (row 0, column 0) -> (row 0, column 1) ->"""
-    for row in mat:
-        yield from row
+    for n1, row in enumerate(mat):
+        for n2, col in enumerate(row):
+            yield ((n1, n2), col)
 
 def traverse_matrix(mat: StrMatrix, start: Point, step: Point, bidi: bool = False) -> list[Point]:
     """Returns all points of a matrix travelled to by beginning at `start`
@@ -137,8 +138,8 @@ def points_adjacent(pt: Point, mat: Matrix,
         e.g. with `pt` as `(2, 2)`, `mat` as a 3x3 matrix of numbers 1-9, and relative as `True`, the returned dictionary will look this...
         ```
         { (-1, -1): 1,  (-1, 0): 2,  (-1, 1): 3,
-          (0, -1):  4,  (0, 0):  5,  (0, 1):  6,
-          (1, -1):  7,  (1, 0):  8,  (1, 1):  9 }
+           (0, -1):  4,  (0, 0):  5,  (0, 1):  6,
+           (1, -1):  7,  (1, 0):  8,  (1, 1):  9 }
         ```
         ...where passing `relative` as `False` would result in this instead:
         ```
@@ -147,16 +148,24 @@ def points_adjacent(pt: Point, mat: Matrix,
           (2, 0): 7, (2, 1): 8, (2, 2): 9 }
         ```
     """
-    adj_pts: list[Point] = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 0), (0, 1), (1, -1) ,(1, 0), (1, 1)]
+    adj_pts: list[Point] = [
+        (-1, -1), (-1, 0), (-1, 1),
+         (0, -1),  (0, 0),  (0, 1),
+         (1, -1),  (1, 0),  (1, 1)
+    ] if corners else [
+                (-1, 0),
+        (0, -1), (0, 0), (0, 1),
+                 (1, 0)
+    ]
     adj_values: dict[Point, Any] = {}
 
-    for pt_check in adj_pts:
-        rel_to_mat = point_op(add, pt_check, pt)
-        pt_key = rel_to_mat if relative else pt_check
-        pt_val = matget(mat, rel_to_mat, allow_oob=True)
-        if pt_val is None:
+    for pt_rel in adj_pts:
+        pt_abs = point_op(add, pt_rel, pt)
+        pt_key = pt_rel if relative else pt_abs
+        val = matget(mat, pt_abs, allow_oob=True)
+        if val is None:
             if not allow_oob:
-                raise IndexError(f'Unallowed access of an out-of-bounds point in matrix not allowed: {rel_to_mat!r}')
-        adj_values[pt_key] = pt_val
+                raise IndexError(f'Unallowed access of an out-of-bounds point in matrix not allowed: {pt_abs!r}')
+        adj_values[pt_key] = val
 
     return adj_values
