@@ -1,5 +1,6 @@
 .ipynb_checkpoints/
 __pycache__/
+inputs/
 */input.txt
 */ans.txt
 */ans_b.txt
@@ -7,3 +8,8 @@ __pycache__/
 
 # Compiled outputs
 **/bin/
+**/target/
+
+# Added by cargo
+
+/target
