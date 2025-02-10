@@ -18,7 +18,6 @@ fn part_one(puzzle_input: String) {
 
     let mut inst_strings: Vec<String> = vec![];
     for m in puzzle_input.match_indices("mul(") {
-        let mut groups: i32 = 0;
         let mut inst: String = String::from("");
         for n in (m.0 + 4)..puzzle_input.len() {
             let ch: char = puzzle_input.chars().nth(n).unwrap();
@@ -30,10 +29,9 @@ fn part_one(puzzle_input: String) {
             }
 
             inst.push_str(&ch.to_string());
-            groups += 1;
         }
 
-        if !inst.is_empty() && groups == 3 {
+        if inst.split(',').filter(|i| !i.is_empty()).collect::<Vec<&str>>().len() == 2 {
             inst_strings.push(inst);
         }
     }
