@@ -3,12 +3,11 @@ use std::fs;
 
 fn main() {
     let sample_in: String = String::from("xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))");
-    let real_in: String = fs::read_to_string("inputs/day3.txt").unwrap();
+    let real_in: String = fs::read_to_string("../input.txt").unwrap();
 
     solve_puzzle(real_in);
 
     let x: Vec<String> = vec![];
-    x.push(32);
 }
 
 fn solve_puzzle(puzzle_input: String) {

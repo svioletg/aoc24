@@ -5,11 +5,8 @@ inputs/
 */ans.txt
 */ans_b.txt
 .virtual_documents/
+rust-project.json
 
 # Compiled outputs
 **/bin/
 **/target/
-
-# Added by cargo
-
-/target
