@@ -4,13 +4,13 @@ Python is my primary language, so every puzzle was done in it first. This is my 
 
 Most days are separated by part one and two as `day[n]a.[ext]` and `day[n]b.[ext]` respectively, e.g. `day1a.py` and `day1b.py`. Since part two is only revealed after solving part one, and it usually involves a lot of modification to the original code, I like keeping them separate to run on their own. If any file happens to contain solutions to both parts, usually if its a puzzle I've already solved and am rewriting in another language, and/or the part two solution is easy to just add a variable/argument check for without much clutter, then it will be named `day[n].[ext]`, e.g. `day5.rs`. In that case, the script or binary should be able to take a single command-line argument to specify which part to solve (e.g. `./day5 a` or `./day b`).
 
-| Day # | Python |Lua|TypeScript| Rust |
-|:-:    |:-:     |:-:|:-:       |:-:   |
+| Day # | Python | Lua | TypeScript | Rust |
+|:-:    |:-:     | :-: | :-:        |:-:   |
 |1      |⭐⭐|⭐⭐|⭐⭐|⭐⭐|
 |2      |⭐|||⭐|
 |3      |⭐⭐|||⭐⭐|
 |4      |||||
-|5      |⭐⭐||||
+|5      |⭐⭐|||⭐⭐|
 |6      |⭐||||
 |7      |⭐⭐||||
 |8      |⭐⭐||||

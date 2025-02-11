@@ -93,7 +93,7 @@ fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
     println!("Valid: {}, Invalid: {}", validation_result.valid, validation_result.invalid);
 
     let mut medians: Vec<i32> = vec![];
-    for u in updates.iter().filter(|&i| if puzzle_part == 1 { !i.needed_correction } else { true }) {
+    for u in updates.iter().filter(|&i| if puzzle_part == 1 { !i.needed_correction } else { i.needed_correction }) {
         medians.push(u.content[u.content.len() / 2]);
     }
 
