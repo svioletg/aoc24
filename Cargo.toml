@@ -1,0 +1,14 @@
+[package]
+name = "aoc24"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[[bin]]
+name = "aoc24"
+path = "main.rs"
+
+[[bin]]
+name = "day6"
+path = "6/rust/day6.rs"

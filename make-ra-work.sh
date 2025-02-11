@@ -1,6 +1,8 @@
 #!/bin/bash
 
-rustfiles=$(find . -type f -name "*.rs")
+# NOT USED ANYMORE
+
+rustfiles=$(find . -type f -name "day*.rs")
 
 for f in $rustfiles; do
 	crates="${crates}${next}{\"root_module\": \"$f\",\"edition\": \"2021\",\"deps\": []}"

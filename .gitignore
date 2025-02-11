@@ -10,3 +10,8 @@ rust-project.json
 # Compiled outputs
 **/bin/
 **/target/
+
+
+# Added by cargo
+
+/target
