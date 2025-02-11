@@ -16,7 +16,7 @@ fn main() {
         process::exit(1);
     }
 
-    solve_puzzle(sample_in, puzzle_part);
+    solve_puzzle(real_in, puzzle_part);
 }
 
 #[derive(Debug)]
@@ -59,7 +59,7 @@ fn validate_update(ordering_rules: &Vec<(i32, i32)>, update_group: &mut Vec<Manu
                 if a_pos > b_pos {
                     was_invalid = true;
                     if !fix { break; }
-                    let popped: i32 = u.content.swap_remove(b_pos);
+                    let popped: i32 = u.content.remove(b_pos);
                     u.content.push(popped);
                     moves += 1;
                 }
@@ -71,7 +71,7 @@ fn validate_update(ordering_rules: &Vec<(i32, i32)>, update_group: &mut Vec<Manu
         else { items_valid += 1; }
     }
 
-    return UpdateValidationResult{valid: items_valid, invalid: items_invalid};
+    UpdateValidationResult{valid: items_valid, invalid: items_invalid}
 }
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
@@ -89,7 +89,14 @@ fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
             });
         }
     }
+    let validation_result: UpdateValidationResult = validate_update(&rules, &mut updates, puzzle_part == 2);
+    println!("Valid: {}, Invalid: {}", validation_result.valid, validation_result.invalid);
 
-    let result: UpdateValidationResult = validate_update(&rules, &mut updates, puzzle_part == 2);
-    println!("Valid: {}, Invalid: {}", result.valid, result.invalid);
+    let mut medians: Vec<i32> = vec![];
+    for u in updates.iter().filter(|&i| if puzzle_part == 1 { !i.needed_correction } else { true }) {
+        medians.push(u.content[u.content.len() / 2]);
+    }
+
+    let medsum: i32 = medians.iter().sum();
+    println!("{medsum}");
 }
