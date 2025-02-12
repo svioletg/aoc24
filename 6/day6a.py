@@ -4,10 +4,10 @@
 # In[1]:
 
 
-from IPython.display import clear_output
-from time import sleep
 from copy import deepcopy
+from time import sleep
 
+from IPython.display import clear_output
 
 # In[2]:
 
@@ -98,8 +98,10 @@ def predict(mat: list[list[str]],
             future = (guard['pos'][0] + direction[0], guard['pos'][1] + direction[1])
             if (future[0] not in range(0, len(mat))) or (future[1] not in range(0, len(mat[0]))):
                 # Guard has exited map
+                print(future)
                 guard_in_map = False
                 break
+            print(future, len(mat), len(mat[0]))
             if mat[future[0]][future[1]] == obj_char:
                 # Turn
                 direction = turn_vec_90deg(direction)
@@ -122,7 +124,7 @@ def predict(mat: list[list[str]],
 matrix: list[list[str]] = [list(line) for line in content.split('\n')]
 guard_chars = {'^': (-1, 0), '>': (0, 1), 'v': (1, 0), '<': (0, -1)}
 result: str = restring(predict(matrix, guard_chars, show=False))
-print(result, result.count('X'))
+print(result.count('X'))
 
 
 # In[ ]:
