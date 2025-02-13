@@ -8,6 +8,7 @@ pub type Matrix<T> = Vec<Vec<T>>;
 pub fn string_to_matrix(s: &String) -> Matrix<char> {
     let mut matrix: Matrix<char> = vec![];
     for line in s.split("\n") {
+        if line == "" { continue; }
         matrix.push(line.chars().collect());
     }
 
@@ -129,7 +130,7 @@ impl MxPointMethods for MxPoint {
         // Check if negative before later casting to usize
         if self.0 < 0 || self.1 < 0 { return false; }
 
-        (0..mat_height).contains(&(self.0 as usize)) && (0..mat_width).contains(&(self.0 as usize))
+        (0..mat_height).contains(&(self.0 as usize)) && (0..mat_width).contains(&(self.1 as usize))
     }
 }
 
