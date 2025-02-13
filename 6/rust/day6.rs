@@ -15,13 +15,13 @@ fn main() {
 fn guard_walk_loop(start: aoc::MxPoint, mat: &aoc::Matrix<char>, obstacle: char) -> usize {
     let mut pos: aoc::MxPoint = start;
     let mut dir: aoc::MxPoint = aoc::MxPoint(-1, 0);
-    let mut visited: HashSet<aoc::MxPoint> = HashSet::new();
+    let mut visited: HashSet<aoc::MxPoint> = HashSet::from([start]);
 
     loop {
         match aoc::matget(mat, pos + dir) {
             ch if ch == Some(&obstacle) => dir = dir.turn_90deg(),
             Some(_) => { pos = pos + dir; visited.insert(pos); () },
-            None => { dbg!(pos + dir); break }
+            None => break
         }
     }
 
