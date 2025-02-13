@@ -12,3 +12,6 @@ path = "main.rs"
 [[bin]]
 name = "day6"
 path = "6/rust/day6.rs"
+[[bin]]
+name = "day8"
+path = "8/rust/day8.rs"

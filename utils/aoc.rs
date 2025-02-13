@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use std::{fmt::{Display, Formatter, Result}, ops};
+use std::{collections::HashSet, fmt::{Display, Formatter, Result}, ops};
 
 // Matrices
 pub type Matrix<T> = Vec<Vec<T>>;
@@ -33,6 +33,20 @@ pub fn matget<T>(m: &Matrix<T>, pt: MxPoint) -> Option<&T> {
 pub fn matset<T>(m: &mut Matrix<T>, pt: MxPoint, val: T) {
     if !pt.in_matrix(m) { panic!("Point does not exist in matrix: {pt}"); }
     m[pt.0 as usize][pt.1 as usize] = val;
+}
+
+// Walks through a matrix beginning at `start` and increasing by `step` for as that point is within the matrix's bounds
+pub fn matrix_traverse<T>(m: &Matrix<T>, start: MxPoint, step: MxPoint, bidi: bool) -> HashSet<MxPoint> {
+    let mut pos = start;
+    let mut points: HashSet<MxPoint> = HashSet::new();
+
+    while pos.in_matrix(m) { points.insert(pos); pos = pos + step; }
+    if bidi {
+        pos = start;
+        while pos.in_matrix(m) { points.insert(pos); pos = pos + (step * MxPoint(-1, -1)); }
+    }
+
+    points
 }
 
 pub fn mat_adjacent<T>(m: &Matrix<T>, pt: MxPoint, relative: bool, corners: bool) -> Vec<MxPoint> {
