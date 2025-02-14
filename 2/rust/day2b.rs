@@ -8,7 +8,7 @@ fn main() {
     8 6 4 4 1\n\
     1 3 6 7 9\n";
 
-    let puzzle: String = fs::read_to_string("../input.txt").unwrap();
+    let puzzle: String = fs::read_to_string("2/input.txt").unwrap();
 
     let lines: Vec<&str> = puzzle.trim().split("\n").collect();
     let mut reports: Vec<Vec<i32>> = vec![];
@@ -19,7 +19,7 @@ fn main() {
         );
     }
 
-    let mut safe_reps: i32 = reports.len() as i32;
+    let mut safe_reps: usize = reports.len();
 
     for rep in reports {
         let mut strikes: i32 = 0;
