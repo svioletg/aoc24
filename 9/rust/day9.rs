@@ -53,21 +53,15 @@ fn optimize_disk(disk: &Vec<i32>) -> Vec<i32> {
     let mut diskcopy: Vec<i32> = disk.clone();
 
     let loop_timer = Instant::now();
-    // let mut iter_times: Vec<f32> = vec![];
     let mut free_blocks: Vec<usize> = diskcopy.iter().enumerate().filter_map(|(n, i)| (*i == -1).then(|| n)).rev().collect();
     for n in (0..disk.len()).rev() {
         if disk[n] == -1 { continue }
         let first_free: usize = free_blocks.pop().expect("No free block indexes left!");
-        // let first_free: usize = diskcopy.iter().position(|i| *i == -1).unwrap();
 
         if first_free > n { break }
-        // let this_time = Instant::now();
         diskcopy.swap(n, first_free);
-        // iter_times.push(this_time.elapsed().as_secs_f32());
     }
     println!("Loop done and took {:.5?}s", loop_timer.elapsed().as_secs_f32());
-    // println!("Each loop averages to {:.10?}s", (iter_times.iter().sum::<f32>() / iter_times.len() as f32));
-    // println!("...and there were {} loops.", iter_times.len());
 
     diskcopy
 }
