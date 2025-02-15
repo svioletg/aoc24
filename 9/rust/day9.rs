@@ -71,24 +71,38 @@ impl Disk {
     }
 
     // i'm sure there's a better name for this but i'm not sure what i'd use...
-    fn optimize_block(&mut self, ublock_index: usize, defrag: bool) -> Option<(usize, &DiskBlock)> {
-        let mut used_block: &mut DiskBlock = &mut self.blocks[ublock_index];
-        let mut fblocks = self.used();
-        if fblocks[0].0 > ublock_index { return None }
+    fn optimize_block(&mut self, ublock_index: usize, defrag: bool) {
+        let mut to_move: DiskBlock = self.blocks.remove(ublock_index);
+        let mut new_block: DiskBlock = DiskBlock{is_free: false, id: to_move.id, size: 0};
 
-        let mut new_block: DiskBlock = DiskBlock{is_free: false, id: used_block.id, size: 0};
-        let mut new_block_index: usize = fblocks[0].0;
-        self.blocks.insert(new_block_index, new_block);
+        let mut nearest_free_index: Option<usize> = self.blocks.iter().position(|i| i.is_free);
+        if nearest_free_index == None || nearest_free_index.unwrap() > ublock_index { return }
+        let mut nearest_free: DiskBlock = self.blocks.remove(nearest_free_index.unwrap());
+        let mut unallocated: DiskBlock = DiskBlock{is_free: true, id: nearest_free.id, size: 0};
+        while to_move.size > 0 {
+            if nearest_free.size == 0 {
+                self.blocks.insert(nearest_free_index.unwrap(), new_block);
+                nearest_free_index = self.blocks.iter().position(|i| i.is_free);
+                // If there are no free blocks left
+                if nearest_free_index == None || nearest_free_index.unwrap() > ublock_index {
+                    self.blocks.push(unallocated);
+                    return;
+                }
 
-        let mut nearest_free = &mut fblocks[0];
+                nearest_free = self.blocks.remove(nearest_free_index.unwrap());
+                new_block = DiskBlock{is_free: false, id: to_move.id, size: 0};
+            }
 
-        while used_block.size > 0 {
-            used_block.size -= 1;
+            nearest_free.size -= 1;
+            unallocated.size += 1;
+            to_move.size -= 1;
             new_block.size += 1;
-            nearest_free.1.size -= 1;
         }
-
-        Some((new_block_index, &new_block))
+        self.blocks.insert(nearest_free_index.unwrap(), new_block);
+        if nearest_free.size > 0 {
+            self.blocks.insert(nearest_free_index.unwrap() + 1, nearest_free);
+        }
+        self.blocks.push(unallocated);
     }
 }
 
@@ -115,6 +129,12 @@ fn main() {
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
     let mut disk = Disk::from_diskmap(&puzzle_input);
-    dbg!(disk.used());
+    // dbg!(disk.used());
+    dbg!(disk.as_string());
+    let ublocks: Vec<u32> = disk.used().iter().map(|i| i.1.id).rev().collect();
+    dbg!(&ublocks);
+    for n in ublocks {
+        disk.optimize_block(disk.blocks.iter().position(|i| i.id == n).unwrap(), false);
+    }
     dbg!(disk.as_string());
 }
