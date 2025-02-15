@@ -1,110 +1,7 @@
-use std::{env, fs, process};
+use std::{env, fs, process, time::{Duration, Instant}};
 
 #[path = "../../utils/aoc.rs"]
 mod aoc;
-
-#[derive(Debug)]
-struct Disk {
-    blocks: Vec<DiskBlock>
-}
-
-#[derive(Debug)]
-struct DiskBlock {
-    is_free: bool,
-    id: u32,
-    size: u32
-}
-
-impl Disk {
-    fn empty() -> Disk {
-        Disk{blocks: vec![]}
-    }
-
-    fn from_diskmap(diskmap: &str) -> Disk {
-        let mut disk: Disk = Disk::empty();
-
-        let mut mode: i32 = 1;
-        let mut fblocks: u32 = 0;
-        let mut ublocks: u32 = 0;
-
-        for ch in diskmap.trim().chars() {
-            let digit: u32 = ch.to_digit(10).unwrap();
-            disk.blocks.push(DiskBlock{
-                is_free: mode == -1,
-                id: if mode == 1 { ublocks } else { fblocks },
-                size: digit
-            });
-
-            if mode == 1 { ublocks += 1 } else { fblocks += 1 }
-            mode *= -1;
-        }
-
-        disk
-    }
-
-    fn as_string(&self) -> String {
-        let mut diskstr: String = "".into();
-        for bl in self.blocks.iter() {
-            let ch: String = if bl.is_free { ".".to_string() } else { bl.id.to_string() };
-            for _ in 0..bl.size { diskstr.push_str(ch.as_str()) }
-        }
-
-        diskstr
-    }
-
-    fn free(&self) -> Vec<(usize, &DiskBlock)> {
-        let mut fblocks: Vec<(usize, &DiskBlock)> = vec![];
-        for (n, bl) in self.blocks.iter().enumerate() {
-            if bl.is_free { fblocks.push((n, bl)) }
-        }
-
-        fblocks
-    }
-
-    fn used(&self) -> Vec<(usize, &DiskBlock)> {
-        let mut fblocks: Vec<(usize, &DiskBlock)> = vec![];
-        for (n, bl) in self.blocks.iter().enumerate() {
-            if !bl.is_free { fblocks.push((n, bl)) }
-        }
-
-        fblocks
-    }
-
-    // i'm sure there's a better name for this but i'm not sure what i'd use...
-    fn optimize_block(&mut self, ublock_index: usize, defrag: bool) {
-        let mut to_move: DiskBlock = self.blocks.remove(ublock_index);
-        let mut new_block: DiskBlock = DiskBlock{is_free: false, id: to_move.id, size: 0};
-
-        let mut nearest_free_index: Option<usize> = self.blocks.iter().position(|i| i.is_free);
-        if nearest_free_index == None || nearest_free_index.unwrap() > ublock_index { return }
-        let mut nearest_free: DiskBlock = self.blocks.remove(nearest_free_index.unwrap());
-        let mut unallocated: DiskBlock = DiskBlock{is_free: true, id: nearest_free.id, size: 0};
-        while to_move.size > 0 {
-            if nearest_free.size == 0 {
-                self.blocks.insert(nearest_free_index.unwrap(), new_block);
-                nearest_free_index = self.blocks.iter().position(|i| i.is_free);
-                // If there are no free blocks left
-                if nearest_free_index == None || nearest_free_index.unwrap() > ublock_index {
-                    self.blocks.push(unallocated);
-                    return;
-                }
-
-                nearest_free = self.blocks.remove(nearest_free_index.unwrap());
-                new_block = DiskBlock{is_free: false, id: to_move.id, size: 0};
-            }
-
-            nearest_free.size -= 1;
-            unallocated.size += 1;
-            to_move.size -= 1;
-            new_block.size += 1;
-        }
-        self.blocks.insert(nearest_free_index.unwrap(), new_block);
-        if nearest_free.size > 0 {
-            self.blocks.insert(nearest_free_index.unwrap() + 1, nearest_free);
-        }
-        self.blocks.push(unallocated);
-    }
-}
 
 fn main() {
     #[allow(unused_variables)]
@@ -124,17 +21,71 @@ fn main() {
 
     println!("Day 9, Part {}", puzzle_part);
 
-    solve_puzzle(sample_in, puzzle_part);
+    solve_puzzle(real_in, puzzle_part);
 }
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
-    let mut disk = Disk::from_diskmap(&puzzle_input);
-    // dbg!(disk.used());
-    dbg!(disk.as_string());
-    let ublocks: Vec<u32> = disk.used().iter().map(|i| i.1.id).rev().collect();
-    dbg!(&ublocks);
-    for n in ublocks {
-        disk.optimize_block(disk.blocks.iter().position(|i| i.id == n).unwrap(), false);
+    let disk: Vec<i32> = parse_diskmap(&puzzle_input);
+    let optimized: Vec<i32> = optimize_disk(&disk);
+    println!("{}", disk_checksum(&optimized));
+}
+
+fn parse_diskmap(diskmap: &String) -> Vec<i32> {
+    let mut disk: Vec<i32> = vec![];
+    let mut mode: i32 = 1;
+    let mut files: u32 = 0;
+    for ch in diskmap.chars() {
+        if !ch.is_digit(10) { continue }
+        let digit: u32 = ch.to_digit(10).unwrap();
+        if mode == 1 {
+            disk.extend(vec![files as i32; digit as usize]);
+            files += 1;
+        } else {
+            disk.extend(vec![-1; digit as usize]);
+        }
+        mode *= -1;
     }
-    dbg!(disk.as_string());
+
+    disk
+}
+
+fn optimize_disk(disk: &Vec<i32>) -> Vec<i32> {
+    let mut diskcopy: Vec<i32> = disk.clone();
+
+    let loop_timer = Instant::now();
+    let mut iter_times: Vec<f32> = vec![];
+    for n in (0..disk.len()).rev() {
+        if disk[n] == -1 { continue }
+        let first_free: usize = diskcopy.iter().position(|i| *i == -1).unwrap();
+
+        if first_free > n { break }
+        let this_time = Instant::now();
+        diskcopy.swap(n, first_free);
+        iter_times.push(this_time.elapsed().as_secs_f32());
+    }
+    println!("Loop done and took {:.5?}s", loop_timer.elapsed());
+    println!("Each loop averages to {:.10?}s", (iter_times.iter().sum::<f32>() / iter_times.len() as f32));
+    println!("...and there were {} loops.", iter_times.len());
+
+    diskcopy
+}
+
+fn disk_as_string(disk: &Vec<i32>) -> String {
+    let mut diskstr: String = String::new();
+    for block in disk.iter() {
+        let blockstr: &str = &block.to_string();
+        diskstr.push_str(if blockstr == "-1" { "." } else { blockstr });
+    }
+
+    diskstr
+}
+
+fn disk_checksum(disk: &Vec<i32>) -> usize {
+    let mut checksum: usize = 0;
+    for (n, block) in disk.iter().enumerate() {
+        if *block == -1 { continue }
+        checksum += n * (*block as usize);
+    }
+
+    checksum
 }
