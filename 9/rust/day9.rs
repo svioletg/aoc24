@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env, fs, process, time::{Duration, Instant}};
+use std::{env, fs, process, time::Instant};
 
 #[path = "../../utils/aoc.rs"]
 mod aoc;
@@ -21,7 +21,7 @@ fn main() {
 
     println!("Day 9, Part {}", puzzle_part);
 
-    solve_puzzle(sample_in, puzzle_part);
+    solve_puzzle(real_in, puzzle_part);
 }
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
@@ -56,6 +56,16 @@ struct DiskChunk {
     size: usize
 }
 
+fn disk_as_string(disk: &Vec<i32>) -> String {
+    let mut diskstr: String = String::new();
+    for block in disk.iter() {
+        let blockstr: &str = &block.to_string();
+        diskstr.push_str(if blockstr == "-1" { "." } else { blockstr });
+    }
+
+    diskstr
+}
+
 fn disk_as_chunks(disk: &Vec<i32>) -> Vec<DiskChunk> {
     let mut disk_chunks: Vec<DiskChunk> = vec![];
     let mut last_block: Option<i32> = None;
@@ -76,7 +86,7 @@ fn disk_as_chunks(disk: &Vec<i32>) -> Vec<DiskChunk> {
 fn chunks_as_disk(disk_chunks: &Vec<DiskChunk>) -> Vec<i32> {
     let mut disk: Vec<i32> = vec![];
     let mut sorted_chunks = disk_chunks.clone();
-    sorted_chunks.sort_by_key(|i| i.size);
+    sorted_chunks.sort_by_key(|i| i.start);
     for chunk in sorted_chunks.iter() {
         disk.extend(vec![chunk.file_id; chunk.size]);
     }
@@ -104,9 +114,8 @@ fn optimize_disk(disk: &Vec<i32>, defrag: bool) -> Vec<i32> {
             this_chunk.start = first_free.start;
             first_free.size -= this_chunk.size;
             if first_free.size > 0 { first_free.start += this_chunk.size }
-            else {
-                disk_chunks.push(displaced);
-            }
+            disk_chunks.push(displaced);
+
         }
 
         optimized_disk = chunks_as_disk(&disk_chunks);
@@ -123,19 +132,7 @@ fn optimize_disk(disk: &Vec<i32>, defrag: bool) -> Vec<i32> {
     }
     println!("Optimization completed in {:.5?}s", loop_timer.elapsed().as_secs_f32());
 
-    dbg!(disk_as_string(&optimized_disk));
-
     optimized_disk
-}
-
-fn disk_as_string(disk: &Vec<i32>) -> String {
-    let mut diskstr: String = String::new();
-    for block in disk.iter() {
-        let blockstr: &str = &block.to_string();
-        diskstr.push_str(if blockstr == "-1" { "." } else { blockstr });
-    }
-
-    diskstr
 }
 
 fn disk_checksum(disk: &Vec<i32>) -> usize {
