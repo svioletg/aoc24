@@ -49,7 +49,7 @@ pub fn matrix_traverse<T>(m: &Matrix<T>, start: MxPoint, step: MxPoint, bidi: bo
     points
 }
 
-pub fn mat_adjacent<T>(m: &Matrix<T>, pt: MxPoint, relative: bool, corners: bool) -> Vec<MxPoint> {
+pub fn points_adjacent(pt: MxPoint, relative: bool, corners: bool) -> Vec<MxPoint> {
     let adj_pts: Vec<MxPoint> = if corners {
         vec![
         (-1, -1), (-1, 0), (-1, 1),
