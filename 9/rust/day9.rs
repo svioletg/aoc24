@@ -1,4 +1,4 @@
-use std::{env, fs, process, time::{Duration, Instant}};
+use std::{collections::HashMap, env, fs, process, time::{Duration, Instant}};
 
 #[path = "../../utils/aoc.rs"]
 mod aoc;
@@ -21,12 +21,12 @@ fn main() {
 
     println!("Day 9, Part {}", puzzle_part);
 
-    solve_puzzle(real_in, puzzle_part);
+    solve_puzzle(sample_in, puzzle_part);
 }
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
     let disk: Vec<i32> = parse_diskmap(&puzzle_input);
-    let optimized: Vec<i32> = optimize_disk(&disk);
+    let optimized: Vec<i32> = optimize_disk(&disk, if puzzle_part == 1 { false } else { true} );
     println!("{}", disk_checksum(&optimized));
 }
 
@@ -49,21 +49,83 @@ fn parse_diskmap(diskmap: &String) -> Vec<i32> {
     disk
 }
 
-fn optimize_disk(disk: &Vec<i32>) -> Vec<i32> {
-    let mut diskcopy: Vec<i32> = disk.clone();
+#[derive(Debug, Clone)]
+struct DiskChunk {
+    start: usize, // Where this chunk begins in the original disk vector
+    file_id: i32, // -1 if free space
+    size: usize
+}
 
-    let loop_timer = Instant::now();
-    let mut free_blocks: Vec<usize> = diskcopy.iter().enumerate().filter_map(|(n, i)| (*i == -1).then(|| n)).rev().collect();
-    for n in (0..disk.len()).rev() {
-        if disk[n] == -1 { continue }
-        let first_free: usize = free_blocks.pop().expect("No free block indexes left!");
-
-        if first_free > n { break }
-        diskcopy.swap(n, first_free);
+fn disk_as_chunks(disk: &Vec<i32>) -> Vec<DiskChunk> {
+    let mut disk_chunks: Vec<DiskChunk> = vec![];
+    let mut last_block: Option<i32> = None;
+    for (n, block) in disk.iter().enumerate() {
+        if last_block.is_some_and(|some| some == *block) {
+            let mut last_chunk: DiskChunk = disk_chunks.pop().expect("Chunks vector was empty!");
+            last_chunk.size += 1;
+            disk_chunks.push(last_chunk);
+        } else {
+            disk_chunks.push(DiskChunk{start: n, file_id: *block, size: 1});
+        }
+        last_block = Some(*block);
     }
-    println!("Loop done and took {:.5?}s", loop_timer.elapsed().as_secs_f32());
 
-    diskcopy
+    disk_chunks
+}
+
+fn chunks_as_disk(disk_chunks: &Vec<DiskChunk>) -> Vec<i32> {
+    let mut disk: Vec<i32> = vec![];
+    let mut sorted_chunks = disk_chunks.clone();
+    sorted_chunks.sort_by_key(|i| i.size);
+    for chunk in sorted_chunks.iter() {
+        disk.extend(vec![chunk.file_id; chunk.size]);
+    }
+
+    disk
+}
+
+fn optimize_disk(disk: &Vec<i32>, defrag: bool) -> Vec<i32> {
+    let mut optimized_disk: Vec<i32> = vec![];
+    let loop_timer = Instant::now();
+    if defrag {
+        let mut disk_chunks: Vec<DiskChunk> = disk_as_chunks(&disk);
+        for n in (0..disk_chunks.len()).rev() {
+            if disk_chunks[n].file_id == -1 { continue }
+
+            let (left, right) = disk_chunks.split_at_mut(n);
+            let this_chunk: &mut DiskChunk = &mut right[0];
+
+            let first_free_index: Option<usize> = left.iter().position(|i| i.file_id == -1 && i.size >= this_chunk.size );
+            if first_free_index.is_none() { continue }
+            let first_free: &mut DiskChunk = &mut left[first_free_index.unwrap()];
+            if first_free.start > this_chunk.start { continue }
+
+            let displaced: DiskChunk = DiskChunk{start: this_chunk.start, file_id: -1, size: this_chunk.size};
+            this_chunk.start = first_free.start;
+            first_free.size -= this_chunk.size;
+            if first_free.size > 0 { first_free.start += this_chunk.size }
+            else {
+                disk_chunks.push(displaced);
+            }
+        }
+
+        optimized_disk = chunks_as_disk(&disk_chunks);
+    } else {
+        optimized_disk = disk.clone();
+        let mut free_blocks: Vec<usize> = optimized_disk.iter().enumerate().filter_map(|(n, i)| (*i == -1).then(|| n)).rev().collect();
+        for n in (0..disk.len()).rev() {
+            if disk[n] == -1 { continue }
+            let first_free: usize = free_blocks.pop().expect("No free block indexes left!");
+
+            if first_free > n { break }
+            optimized_disk.swap(n, first_free);
+        }
+    }
+    println!("Optimization completed in {:.5?}s", loop_timer.elapsed().as_secs_f32());
+
+    dbg!(disk_as_string(&optimized_disk));
+
+    optimized_disk
 }
 
 fn disk_as_string(disk: &Vec<i32>) -> String {
