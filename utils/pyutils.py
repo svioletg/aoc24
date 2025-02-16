@@ -2,6 +2,7 @@ from collections.abc import Callable, Generator
 from copy import deepcopy
 from operator import add, floordiv, mod, mul, neg, sub, truediv
 from pprint import pprint
+from time import perf_counter
 from typing import Any, Literal, Optional, overload
 
 from colorama import Back, Fore, Style
@@ -11,6 +12,12 @@ Matrix = list[list]
 IntMatrix = list[list[int]]
 StrMatrix = list[list[str]]
 Point = tuple[int, int]
+
+# Misc
+def readutf8(fp: str) -> str:
+    with open(fp, 'r', encoding='utf-8') as f:
+        content = f.read()
+    return content
 
 def colored(s: str, colstr: str) -> str:
     """Returns `s` with preceding color codes per `colstr`.
@@ -27,11 +34,24 @@ def colored(s: str, colstr: str) -> str:
     bg = Back.BLACK if not bg else getattr(Back, bg.upper())
     return f'{fg}{bg}{s}{Style.RESET_ALL}'
 
+class Stopwatch:
+    def __init__(self, label: Optional[str] = None):
+        self.label: str = label or str(id(label))
+        self.ta = perf_counter()
+
+    def lap(self) -> float:
+        return perf_counter() - self.ta
+
+    def print_lap(self):
+        print(f'Stopwatch {self.label}: {self.lap():.8f}')
+
 # Matrices
 def strtomat(s: str, map_fn: Optional[Callable] = None) -> Matrix:
     """Turns a string into a matrix. Will be a matrix of strings unless `map_fn` converts them to something else."""
     mat: Matrix = []
     for row in s.split('\n'):
+        if row == '':
+            continue
         mat.append(list(row if map_fn is None else map(map_fn, row)))
     return mat
 
