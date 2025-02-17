@@ -49,24 +49,9 @@ pub fn matrix_traverse<T>(m: &Matrix<T>, start: MxPoint, step: MxPoint, bidi: bo
     points
 }
 
-pub fn points_adjacent(pt: MxPoint, relative: bool, corners: bool) -> Vec<MxPoint> {
-    let adj_pts: Vec<MxPoint> = if corners {
-        vec![
-        (-1, -1), (-1, 0), (-1, 1),
-         (0, -1),  (0, 0),  (0, 1),
-         (1, -1),  (1, 0),  (1, 1)
-        ].iter().map(|&i| MxPoint(i.0, i.1)).collect()
-    } else {
-        vec![
-                    (-1, 0),
-            (0, -1), (0, 0), (0, 1),
-                     (1, 0)
-        ].iter().map(|&i| MxPoint(i.0, i.1)).collect()
-    };
-
-    if relative { return adj_pts; }
-
-    adj_pts.iter().map(|&i| pt + i).collect()
+pub fn points_adjacent(pt: MxPoint, relative: bool, corners: bool) -> [MxPoint; 5] {
+    if relative { return [MxPoint::up(), MxPoint::right(), MxPoint(0, 0), MxPoint::down(), MxPoint::left()]; }
+    else { [MxPoint::up() + pt, MxPoint::right() + pt, MxPoint(0, 0) + pt, MxPoint::down() + pt, MxPoint::left() + pt] }
 }
 
 // Points
