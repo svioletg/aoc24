@@ -2,6 +2,7 @@ use std::{collections::HashMap, env, fs, process};
 
 #[path = "../../utils/aoc.rs"]
 mod aoc;
+use aoc::{MxPoint, Matrix};
 
 fn main() {
     #[allow(unused_variables)]
@@ -25,46 +26,65 @@ fn main() {
 }
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
-    let trailmap: aoc::Matrix<u32> = aoc::matrix_map(&aoc::string_to_matrix(&puzzle_input), |i| i.to_digit(10).unwrap());
+    let trailmap: Matrix<u32> = aoc::matrix_map(&aoc::string_to_matrix(&puzzle_input), |i| i.to_digit(10).unwrap());
 }
 
-fn find_trailheads(mat: aoc::Matrix<u32>) -> Vec<aoc::MxPoint> {
-    let mut trailheads: Vec<aoc::MxPoint> = vec![];
+fn find_trailheads(mat: Matrix<u32>) -> Vec<MxPoint> {
+    let mut trailheads: Vec<MxPoint> = vec![];
     for (ridx, row) in mat.iter().enumerate() {
         for (cidx, column) in row.iter().enumerate() {
-            if *column == 0 { trailheads.push(aoc::MxPoint(ridx as isize, cidx as isize)); }
+            if *column == 0 { trailheads.push(MxPoint(ridx as isize, cidx as isize)); }
         }
     }
 
     trailheads
 }
 
-fn find_trails(mat: aoc::Matrix<u32>, heads: Vec<aoc::MxPoint>) {
-    let mut trails: HashMap<aoc::MxPoint, Vec<Vec<(aoc::MxPoint, u32)>>> = HashMap::new();
-    let mut branches: Vec<aoc::MxPoint> = vec![];
+fn get_trailhead_stats(mat: Matrix<u32>, heads: Vec<MxPoint>) -> (u32, u32) {
+    let mut scores: HashMap<MxPoint, u32> = HashMap::new();
+    let mut ratings: HashMap<MxPoint, u32> = HashMap::new();
     for head_pt in heads.iter() {
-        let mut pts_checked: Vec<aoc::MxPoint> = vec![];
-        let mut path: Vec<(aoc::MxPoint, u32)> = vec![(*head_pt, 0)];
+        scores.insert(*head_pt, 0);
+        ratings.insert(*head_pt, 0);
 
-        branches.push(*head_pt);
+        let mut pts_visited: Vec<MxPoint> = vec![];
+        let mut path: Vec<(MxPoint, u32)> = vec![(*head_pt, 0)];
+
+        let mut branches: Vec<(MxPoint, u32)> = vec![(*head_pt, 0)];
         while branches.len() > 0 {
-            let last_path_pt: &(aoc::MxPoint, u32) = path.last().unwrap();
-            let this_branch: aoc::MxPoint = branches.pop().expect("Unexpectedly exhausted branches!");
-            if pts_checked.contains(&this_branch) { continue }
-            pts_checked.push(this_branch);
+            let this_branch = branches.pop().unwrap();
+            pts_visited.push(this_branch.0);
 
-            if this_branch != *head_pt {
-                match aoc::matget(&mat, this_branch) {
-                    Some(level) => {
-                        if (*level > last_path_pt.1) && (*level - last_path_pt.1 == 1) { path.push((this_branch, *level)) }
-                        else { continue }
-                    },
-                    None => continue
-                }
+            let last_path_item: &(MxPoint, u32) = path.last().unwrap();
+            path.push(this_branch);
+            let adj: Vec<(MxPoint, Option<&u32>)> = aoc::points_adjacent(this_branch.0, false, false)
+                .iter().map(|&i| (i, aoc::matget(&mat, i))).collect();
+            for (pt, level) in adj.iter() {
+                if level.is_some_and(|&i| i == last_path_item.1 + 1) { branches.push((*pt, *level.unwrap())) }
             }
-
-            let adj: Vec<aoc::MxPoint> = aoc::points_adjacent(this_branch, false, false);
-            branches.extend(adj);
         }
+
+        // branches.push(*head_pt);
+        // while branches.len() > 0 {
+        //     let last_path_pt: &(MxPoint, u32) = path.last().unwrap();
+        //     let this_branch: MxPoint = branches.pop().expect("Unexpectedly exhausted branches!");
+        //     if pts_checked.contains(&this_branch) { continue }
+        //     pts_checked.push(this_branch);
+
+        //     if this_branch != *head_pt {
+        //         match aoc::matget(&mat, this_branch) {
+        //             Some(level) => {
+        //                 if (*level > last_path_pt.1) && (*level - last_path_pt.1 == 1) { path.push((this_branch, *level)) }
+        //                 else { continue }
+        //             },
+        //             None => continue
+        //         }
+        //     }
+
+        //     let adj: Vec<MxPoint> = aoc::points_adjacent(this_branch, false, false);
+        //     branches.extend(adj);
+        // }
     }
+
+    (0, 0)
 }
