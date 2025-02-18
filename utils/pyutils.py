@@ -59,21 +59,37 @@ def mat_restring(mat: Matrix) -> str:
     """Returns a matrix as one single rectangular string."""
     return '\n'.join([''.join(map(str, row)) for row in mat])
 
-def matrix_from_dict(mat_dict: dict[Point, Any]) -> Matrix:
-    """Creates a matrix from a dictionary of point keys to values."""
-    mat: Matrix = []
-    rows: set[int] = set()
-    columns: set[int] = set()
-    for pt in mat_dict.keys():
-        if (pt[0] % 1 != 0) or (pt[1] % 1 != 0):
-            raise ValueError(f'Can\'t create matrix from dictionary, points contains a non-whole number: {pt!r}')
-        if (pt[0] < 0) or (pt[1] < 0):
-            raise ValueError(f'Can\'t create matrix from dictionary, point contains a negative integer: {pt!r}')
-        rows.add(pt[0])
-        columns.add(pt[1])
+def matslice(mat: Matrix, topleft: Point, bottomright: Point, hardfail: bool = False) -> Matrix | None:
+    """Returns a slice, or sub-matrix, of the provided matrix, starting from `topleft` and ending at `bottomright`.
+    As an example, with the following matrix:
+    ```
+    mat = \"\"\"
+    ABCDE
+    FGHIJ
+    KLMNO
+    \"\"\"
+    ```
+    Calling `matslice(mat, (0, 1), (2, 3))` on it would result in a matrix like this:
+    ```
+    BCD
+    GHI
+    LMN
+    ```
+    If a corner point provided is out of bounds, returns `None`. If `hardfail` is passed `True`, `IndexError` is raised
+    in this case instead.
+    """
+    if not (point_in_matrix(topleft, mat) and point_in_matrix(bottomright, mat)):
+        if hardfail:
+            raise IndexError(f'One of the provided corner points are out of bounds: {topleft!r}, {bottomright!r}')
+        return None
 
-    mat = [] * len(rows)
-    raise NotImplementedError
+    start_row, start_col = topleft
+    end_row, end_col = bottomright
+    submat: Matrix = [[] for _ in range(start_row, end_row + 1)]
+    for ridx, row in enumerate(mat[start_row:end_row + 1]):
+        submat[ridx] = row[start_col:end_col + 1].copy()
+
+    return submat
 
 def matget(mat: Matrix, pt: Point, allow_oob: bool = False, oob_value: Any = None) -> Any:
     """Returns the value of a given point or points in `mat`.
