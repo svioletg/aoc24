@@ -1,5 +1,6 @@
 from collections.abc import Callable, Generator
 from copy import deepcopy
+from math import floor
 from operator import add, floordiv, mod, mul, neg, sub, truediv
 from pprint import pprint
 from time import perf_counter
@@ -54,6 +55,10 @@ def strtomat(s: str, map_fn: Optional[Callable] = None) -> Matrix:
             continue
         mat.append(list(row if map_fn is None else map(map_fn, row)))
     return mat
+
+def mat_flat(mat: Matrix) -> list:
+    """Flattens a matrix into a single list of elements."""
+    return [b for a in mat for b in a]
 
 def mat_restring(mat: Matrix) -> str:
     """Returns a matrix as one single rectangular string."""
@@ -151,6 +156,24 @@ def point_op(fn: Callable, a: Point, b: int | Point) -> Point:
     if isinstance(b, int):
         b = (b, b)
     return (fn(a[0], b[0]), fn(a[1], b[1]))
+
+def point_from_index(idx: int, w: int, h: int, xy: bool = False) -> Point:
+    """Returns a `Point` converted from an index based on a matrix's given width and height.
+    In a matrix with 4 rows and 4 columns, an index of `6` returns `(1, 2)` (as ROW,COLUMN).
+
+    :param xy: If `True`, gives the converted `Point` back in X,Y form rather than ROW,COLUMN form, i.e. horizontal first.
+    """
+    pt = (idx - w, floor(idx / h))
+    return pt if not xy else (pt[1], pt[0])
+
+def index_from_point(pt: Point, w: int, xy: bool = False) -> int:
+    """Returns an index of a matrix converted from the given `Point` based on its width and the point's `y`.
+    In a matrix with 4 rows and 4 columns, the point `(1, 2)` (as ROW,COLUMN) returns `6`.
+
+    :param xy: Treats `pt` as X,Y form rather than ROW,COLUMN.
+    """
+    x, y = (pt[0] if xy else pt[1], pt[1] if xy else pt[0])
+    return x + (w * y)
 
 def point_in_matrix(pt: Point, mat: Matrix) -> bool:
     """Returns whether `pt` is within the bounds of `mat`."""
