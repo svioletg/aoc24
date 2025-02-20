@@ -1,9 +1,6 @@
 use std::{collections::HashSet, fmt::{Display, Formatter}, ops};
 
 // Matrices
-#[deprecated(note="use the `Matrix` struct instead of this type alias")]
-pub type MatrixType<T> = Vec<Vec<T>>;
-
 #[derive(Debug)]
 pub struct Matrix<T> {
     pub rows: Vec<Vec<T>>
@@ -31,6 +28,9 @@ impl<T> Matrix<T> {
 
         Ok(())
     }
+
+    pub fn height(&self) -> usize { self.rows.len() }
+    pub fn width(&self) -> usize { self.rows[0].len() }
 
     /// Walks through this matrix beginning at `start` and increasing by `step` for as long as the point is within the matrix's bounds
     ///
@@ -97,59 +97,6 @@ impl<T: Clone, const R: usize, const C: usize> From<[[T; C]; R]> for Matrix<T> {
     }
 }
 
-pub fn string_to_matrix(s: &String) -> MatrixType<char> {
-    let mut matrix: MatrixType<char> = vec![];
-    for line in s.split("\n") {
-        if line == "" { continue; }
-        matrix.push(line.chars().collect());
-    }
-
-    matrix
-}
-
-pub fn matrix_map<T, F, N>(m: &MatrixType<T>, mapfn: F) -> MatrixType<N>
-    where F: Fn(&T) -> N {
-    let mut mapped: MatrixType<N> = vec![];
-    for row in m.iter() {
-        mapped.push(row.iter().map(|i| mapfn(i)).collect());
-    }
-
-    mapped
-}
-
-pub fn matget<T>(m: &MatrixType<T>, pt: MxPoint) -> Option<&T> {
-    if pt.in_matrix(m) { Some(&m[pt.0 as usize][pt.1 as usize]) }
-    else { None }
-}
-
-pub fn matset<T>(m: &mut MatrixType<T>, pt: MxPoint, val: T) {
-    if !pt.in_matrix(m) { panic!("Point does not exist in matrix: {pt}"); }
-    m[pt.0 as usize][pt.1 as usize] = val;
-}
-
-/// Walks through a matrix beginning at `start` and increasing by `step` for as that point is within the matrix's bounds
-///
-/// # Arguments
-/// * `bidi` - Whether to walk the matrix in both directions from the given starting point.
-pub fn matrix_traverse<T>(m: &MatrixType<T>, start: MxPoint, step: MxPoint, bidi: bool) -> HashSet<MxPoint> {
-    let mut pos = start;
-    let mut points: HashSet<MxPoint> = HashSet::new();
-
-    while pos.in_matrix(m) { points.insert(pos); pos = pos + step; }
-    if bidi {
-        pos = start;
-        while pos.in_matrix(m) { points.insert(pos); pos = pos + (step * MxPoint(-1, -1)); }
-    }
-
-    points
-}
-
-#[deprecated(note="use `MxPoint::cardinals4` or `MxPoint::cardinals8 instead")]
-pub fn points_adjacent(pt: MxPoint, relative: bool) -> [MxPoint; 5] {
-    if relative { return [MxPoint::up(), MxPoint::right(), MxPoint(0, 0), MxPoint::down(), MxPoint::left()]; }
-    else { [MxPoint::up() + pt, MxPoint::right() + pt, MxPoint(0, 0) + pt, MxPoint::down() + pt, MxPoint::left() + pt] }
-}
-
 // Points
 /// Represents a point within a [Matrix], as a tuple of `(row, column)`.
 ///
@@ -207,7 +154,6 @@ pub trait MxPointMethods {
     fn to_left(self, n: isize)  -> MxPoint;
 
     fn turn_90deg(&self) -> MxPoint;
-    fn in_matrix<T>(&self, m: &MatrixType<T>) -> bool;
 }
 
 impl MxPointMethods for MxPoint {
@@ -239,16 +185,6 @@ impl MxPointMethods for MxPoint {
             MxPoint(0, -1) => MxPoint(-1, 0),
             _ => panic!("MxPoint::turn_90deg got an invalid input: {self}")
         }
-    }
-
-    fn in_matrix<T>(&self, m: &MatrixType<T>) -> bool {
-        let mat_height: usize = m.len();
-        let mat_width: usize = m[0].len();
-
-        // Check if negative before later casting to usize
-        if self.0 < 0 || self.1 < 0 { return false; }
-
-        (0..mat_height).contains(&(self.0 as usize)) && (0..mat_width).contains(&(self.1 as usize))
     }
 }
 

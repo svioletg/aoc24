@@ -1,5 +1,5 @@
 use std::{collections::{HashMap, HashSet}, env, fs, process};
-use aoc::MxPointMethods;
+use aoc::{Matrix, MxPoint, MxPointMethods};
 
 fn main() {
     #[allow(unused_variables)]
@@ -20,7 +20,7 @@ fn main() {
     solve_puzzle(real_in, puzzle_part);
 }
 
-fn guard_walk_loop(start: aoc::MxPoint, mat: &aoc::MatrixType<char>, obst_char: char) -> (HashSet<aoc::MxPoint>, bool) {
+fn guard_walk_loop(start: aoc::MxPoint, mat: &Matrix<char>, obst_char: char) -> (HashSet<aoc::MxPoint>, bool) {
     let mut pos: aoc::MxPoint = start;
     let mut dir: aoc::MxPoint = aoc::MxPoint(-1, 0);
     let mut spaces_visited: HashSet<aoc::MxPoint> = HashSet::from([start]);
@@ -28,7 +28,7 @@ fn guard_walk_loop(start: aoc::MxPoint, mat: &aoc::MatrixType<char>, obst_char: 
     let mut path_loops: bool = false;
 
     loop {
-        match aoc::matget(mat, pos + dir) {
+        match mat.get(pos + dir) {
             ch if ch == Some(&obst_char) => {
                 let this_obst = obst_hit.entry(pos + dir).or_insert(vec![]);
                 if !this_obst.contains(&dir) { this_obst.push(dir); }
@@ -44,18 +44,18 @@ fn guard_walk_loop(start: aoc::MxPoint, mat: &aoc::MatrixType<char>, obst_char: 
 }
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
-    let mut matrix = aoc::string_to_matrix(&puzzle_input);
+    let mut matrix = Matrix::from_str(&puzzle_input);
     // Find guard char
     let mut guard_pos: Option<(usize, usize)> = None;
-    for (row_idx, row) in matrix.iter().enumerate() {
+    for (row_idx, row) in matrix.rows.iter().enumerate() {
         for (col_idx, column) in row.iter().enumerate() {
             if *column == '^' { guard_pos = Some((row_idx, col_idx)); }
         }
     }
 
-    println!("Matrix is {} by {}", matrix.len(), matrix[0].len());
+    println!("Matrix is {} by {}", matrix.width(), matrix.height());
 
-    if guard_pos.is_none() { panic!("No guard character found in the input string."); }
+    if guard_pos.is_none() { panic!("No guard character found in the input string!"); }
     let guard_pos: (usize, usize) = guard_pos.unwrap();
 
     if puzzle_part == 1 {
@@ -68,13 +68,13 @@ fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
         for loc in visited.0 {
             if loc == guard_pos.into() { continue }
 
-            let was: char = *aoc::matget(&matrix, loc).unwrap();
+            let was: char = *matrix.get(loc).unwrap();
             // Place temporary obstruction
-            aoc::matset(&mut matrix, loc, '#');
+            matrix.set(loc, '#').unwrap();
             let result = guard_walk_loop(guard_pos.into(), &matrix, '#');
             if result.1 == true { possible_obsts += 1 }
             // Reset to previous value
-            aoc::matset(&mut matrix, loc, was);
+            matrix.set(loc, was).unwrap();
         }
 
         println!("{}", possible_obsts);
