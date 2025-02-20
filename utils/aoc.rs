@@ -1,9 +1,46 @@
 #![allow(unused)]
 
-use std::{collections::HashSet, fmt::{Display, Formatter, Result}, ops};
+use std::{collections::HashSet, fmt::{Display, Formatter, Result}, iter::Map, ops};
 
 // Matrices
 pub type Matrix<T> = Vec<Vec<T>>;
+
+// will be renamed to Matrix later when ready
+pub struct MatrixStruct<T> {
+    rows: Vec<Vec<T>>
+}
+
+impl<T> MatrixStruct<T> {
+    fn get(&self, pt: MxPoint) -> Option<&T> {
+        if pt.0 < 0 || pt.1 < 0 { return None }
+        self.rows.get(pt.0 as usize).and_then(|r| r.get(pt.1 as usize))
+    }
+
+    fn from_str_mapped<F>(s: &str, mut f: F) -> MatrixStruct<T>
+    where F: FnMut(char) -> T {
+        let data: Vec<Vec<T>> = s.split('\n')
+            .filter(|i| !i.is_empty())
+            .map(|i| i.chars().map(&mut f).collect())
+            .collect();
+        MatrixStruct::from(data)
+    }
+}
+
+impl MatrixStruct<char> {
+    fn from_str(s: &str) -> MatrixStruct<char> {
+        let data: Vec<Vec<char>> = s.split('\n')
+            .filter(|i| !i.is_empty())
+            .map(|i| i.chars().collect())
+            .collect();
+        MatrixStruct::from(data)
+    }
+}
+
+impl<T> From<Vec<Vec<T>>> for MatrixStruct<T> {
+    fn from(data: Vec<Vec<T>>) -> MatrixStruct<T> {
+        MatrixStruct{rows: data}
+    }
+}
 
 pub fn string_to_matrix(s: &String) -> Matrix<char> {
     let mut matrix: Matrix<char> = vec![];

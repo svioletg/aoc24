@@ -1,8 +1,5 @@
 use std::{env, fs, process, time::{Duration, Instant}};
 
-#[path = "../../utils/aoc.rs"]
-mod aoc;
-
 fn main() {
     #[allow(unused_variables)]
     let sample_in: String = fs::read_to_string("9/sample.txt").unwrap();

@@ -5,6 +5,10 @@ edition = "2021"
 
 [dependencies]
 
+[lib]
+name = "aoc"
+path = "utils/aoc.rs"
+
 [[bin]]
 name = "aoc24"
 path = "main.rs"

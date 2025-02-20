@@ -1,7 +1,4 @@
 use std::{collections::HashSet, env, fs, process};
-
-#[path = "../../utils/aoc.rs"]
-mod aoc;
 use aoc::{MxPoint, Matrix};
 
 fn main() {

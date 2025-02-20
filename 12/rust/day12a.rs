@@ -2,9 +2,6 @@ use std::{env, fs, process};
 
 use aoc::{Matrix, MxPoint};
 
-#[path = "../../utils/aoc.rs"]
-mod aoc;
-
 fn main() {
     #[allow(unused_variables)]
     let sample_in: String = fs::read_to_string("12/sample.txt").unwrap();
@@ -24,7 +21,7 @@ fn main() {
 
     println!("Day 12, Part {}", puzzle_part);
 
-    solve_puzzle(sample_in, puzzle_part);
+    solve_puzzle(real_in, puzzle_part);
 }
 
 struct GardenRegion {
@@ -64,7 +61,8 @@ fn find_regions(mat: &Matrix<char>) -> Vec<GardenRegion> {
     let mut regions: Vec<Vec<(MxPoint, char)>> = vec![];
 
     fn search_branches(pt: &MxPoint, mat: &Matrix<char>, plot: char, pts_checked: &mut Vec<MxPoint>) -> Vec<(MxPoint, char)> {
-        if pts_checked.contains(pt) { return vec![]; }
+        if pts_checked.contains(pt) { return vec![] }
+        if aoc::matget(mat, *pt).is_none_or(|i| i != &plot) { return vec![] }
         pts_checked.push(*pt);
         let mut region: Vec<(MxPoint, char)> = vec![(*pt, plot)];
         let adj_pts = aoc::points_adjacent(*pt, false, false);
