@@ -20,7 +20,7 @@ fn main() {
     solve_puzzle(real_in, puzzle_part);
 }
 
-fn guard_walk_loop(start: aoc::MxPoint, mat: &aoc::Matrix<char>, obst_char: char) -> (HashSet<aoc::MxPoint>, bool) {
+fn guard_walk_loop(start: aoc::MxPoint, mat: &aoc::MatrixType<char>, obst_char: char) -> (HashSet<aoc::MxPoint>, bool) {
     let mut pos: aoc::MxPoint = start;
     let mut dir: aoc::MxPoint = aoc::MxPoint(-1, 0);
     let mut spaces_visited: HashSet<aoc::MxPoint> = HashSet::from([start]);

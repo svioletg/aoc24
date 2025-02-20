@@ -22,7 +22,7 @@ fn main() {
     solve_puzzle(real_in, puzzle_part);
 }
 
-fn find_antennas(matrix: &aoc::Matrix<char>) -> HashMap<aoc::MxPoint, char> {
+fn find_antennas(matrix: &aoc::MatrixType<char>) -> HashMap<aoc::MxPoint, char> {
     let mut antennas: HashMap<aoc::MxPoint, char> = HashMap::new();
     for (ridx, row) in matrix.iter().enumerate() {
         for (cidx, column) in row.iter().enumerate() {
@@ -33,7 +33,7 @@ fn find_antennas(matrix: &aoc::Matrix<char>) -> HashMap<aoc::MxPoint, char> {
     antennas
 }
 
-fn find_antinodes(matrix: &aoc::Matrix<char>, antennas: &HashMap<aoc::MxPoint, char>, puzzle_part: i32) -> HashSet<aoc::MxPoint> {
+fn find_antinodes(matrix: &aoc::MatrixType<char>, antennas: &HashMap<aoc::MxPoint, char>, puzzle_part: i32) -> HashSet<aoc::MxPoint> {
     let mut antinodes: HashSet<aoc::MxPoint> = HashSet::new();
     for (pt1, freq1) in antennas.iter() {
         for (pt2, freq2) in antennas.iter() {

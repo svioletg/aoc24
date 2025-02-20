@@ -1,5 +1,5 @@
 use std::{collections::HashSet, env, fs, process};
-use aoc::{MxPoint, Matrix};
+use aoc::{MxPoint, MatrixType};
 
 fn main() {
     #[allow(unused_variables)]
@@ -21,7 +21,7 @@ fn main() {
 }
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
-    let trailmap: Matrix<u32> = aoc::matrix_map(&aoc::string_to_matrix(&puzzle_input), |i| i.to_digit(10).unwrap());
+    let trailmap: MatrixType<u32> = aoc::matrix_map(&aoc::string_to_matrix(&puzzle_input), |i| i.to_digit(10).unwrap());
     let heads: Vec<MxPoint> = find_trailheads(&trailmap);
 
     let mut scores: u32 = 0;
@@ -41,7 +41,7 @@ fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
     }
 }
 
-fn find_trailheads(mat: &Matrix<u32>) -> Vec<MxPoint> {
+fn find_trailheads(mat: &MatrixType<u32>) -> Vec<MxPoint> {
     let mut trailheads: Vec<MxPoint> = vec![];
     for (ridx, row) in mat.iter().enumerate() {
         for (cidx, column) in row.iter().enumerate() {
@@ -52,7 +52,7 @@ fn find_trailheads(mat: &Matrix<u32>) -> Vec<MxPoint> {
     trailheads
 }
 
-fn score_trailhead(trailmap: &Matrix<u32>, pt: MxPoint, level: u32, ends: &mut HashSet<MxPoint>) -> u32 {
+fn score_trailhead(trailmap: &MatrixType<u32>, pt: MxPoint, level: u32, ends: &mut HashSet<MxPoint>) -> u32 {
     let mut rating: u32 = 0;
 
     if level == 9 {
@@ -60,7 +60,7 @@ fn score_trailhead(trailmap: &Matrix<u32>, pt: MxPoint, level: u32, ends: &mut H
         return 1
     }
 
-    let adj = aoc::points_adjacent(pt, false, false);
+    let adj = aoc::points_adjacent(pt, false);
     for adj_pt in adj {
         match aoc::matget(&trailmap, adj_pt) {
             Some(val) => {

@@ -1,6 +1,6 @@
 use std::{env, fs, process};
 
-use aoc::{Matrix, MxPoint};
+use aoc::{Matrix, MxPoint, MxPointMethods};
 
 fn main() {
     #[allow(unused_variables)]
@@ -24,6 +24,7 @@ fn main() {
     solve_puzzle(real_in, puzzle_part);
 }
 
+#[derive(Debug)]
 struct GardenRegion {
     plant: char,
     plots: Vec<MxPoint>,
@@ -62,10 +63,10 @@ fn find_regions(mat: &Matrix<char>) -> Vec<GardenRegion> {
 
     fn search_branches(pt: &MxPoint, mat: &Matrix<char>, plot: char, pts_checked: &mut Vec<MxPoint>) -> Vec<(MxPoint, char)> {
         if pts_checked.contains(pt) { return vec![] }
-        if aoc::matget(mat, *pt).is_none_or(|i| i != &plot) { return vec![] }
+        if mat.get(*pt).is_none_or(|i| i != &plot) { return vec![] }
         pts_checked.push(*pt);
         let mut region: Vec<(MxPoint, char)> = vec![(*pt, plot)];
-        let adj_pts = aoc::points_adjacent(*pt, false, false);
+        let adj_pts = MxPoint::cardinals4().map(|i| *pt + i);
         for branch_pt in adj_pts {
             region.extend(search_branches(&branch_pt, mat, plot, pts_checked));
         }
@@ -73,7 +74,7 @@ fn find_regions(mat: &Matrix<char>) -> Vec<GardenRegion> {
         region
     }
 
-    for (ridx, row) in mat.iter().enumerate() {
+    for (ridx, row) in mat.rows.iter().enumerate() {
         for (cidx, column) in row.iter().enumerate() {
             let pt = MxPoint(ridx as isize, cidx as isize);
             if pts_checked.contains(&pt) { continue }
@@ -86,7 +87,7 @@ fn find_regions(mat: &Matrix<char>) -> Vec<GardenRegion> {
 }
 
 fn solve_puzzle(puzzle_input: String, puzzle_part: i32) {
-    let garden: Matrix<char> = aoc::string_to_matrix(&puzzle_input);
+    let garden: Matrix<char> = Matrix::from_str(&puzzle_input);
     let garden_regions: Vec<GardenRegion> = find_regions(&garden);
     println!("{}", garden_regions.iter().map(|i| i.area * i.perimeter).sum::<u32>());
 }

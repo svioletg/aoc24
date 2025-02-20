@@ -1,49 +1,104 @@
-#![allow(unused)]
-
-use std::{collections::HashSet, fmt::{Display, Formatter, Result}, iter::Map, ops};
+use std::{collections::HashSet, fmt::{Display, Formatter}, ops};
 
 // Matrices
-pub type Matrix<T> = Vec<Vec<T>>;
+#[deprecated(note="use the `Matrix` struct instead of this type alias")]
+pub type MatrixType<T> = Vec<Vec<T>>;
 
-// will be renamed to Matrix later when ready
-pub struct MatrixStruct<T> {
-    rows: Vec<Vec<T>>
+#[derive(Debug)]
+pub struct Matrix<T> {
+    pub rows: Vec<Vec<T>>
 }
 
-impl<T> MatrixStruct<T> {
-    fn get(&self, pt: MxPoint) -> Option<&T> {
+impl<T> Matrix<T> {
+    /// Retrieves a value in this matrix by its [MxPoint].
+    pub fn get(&self, pt: MxPoint) -> Option<&T> {
         if pt.0 < 0 || pt.1 < 0 { return None }
         self.rows.get(pt.0 as usize).and_then(|r| r.get(pt.1 as usize))
     }
 
-    fn from_str_mapped<F>(s: &str, mut f: F) -> MatrixStruct<T>
+    /// Retrieves a value in this matrix by a flat index, as if every row of the matrix were concatenated together as one.
+    pub fn get_flat(&self, idx: usize) -> Option<&T> {
+        let pt = MxPoint((idx / self.rows.len()) as isize, (idx - self.rows[0].len()) as isize);
+        self.get(pt)
+    }
+
+    /// Sets the value of an [MxPoint] in this matrix to `val`.
+    ///
+    /// Returns [Err] if the point does not exist, [Ok] containing `()` otherwise.
+    pub fn set(&mut self, pt: MxPoint, val: T) -> Result<(), String> {
+        if self.get(pt).is_none() { return Err("point does not exist in this matrix".to_string()); }
+        self.rows[pt.0 as usize][pt.1 as usize] = val;
+
+        Ok(())
+    }
+
+    /// Walks through this matrix beginning at `start` and increasing by `step` for as long as the point is within the matrix's bounds
+    ///
+    /// # Arguments
+    /// * `bidi` - Whether to walk the matrix in both directions from the given starting point.
+    pub fn walk_pattern(&self, start: MxPoint, step: MxPoint, bidi: bool) -> HashSet<MxPoint> {
+        let mut pos = start;
+        let mut points: HashSet<MxPoint> = HashSet::new();
+
+        while self.get(pos).is_some() { points.insert(pos); pos = pos + step; }
+        if bidi {
+            pos = start;
+            while self.get(pos).is_some() { points.insert(pos); pos = pos + (step * MxPoint(-1, -1)); }
+        }
+
+        points
+    }
+
+    pub fn from_str_mapped<F>(s: &str, mut f: F) -> Matrix<T>
     where F: FnMut(char) -> T {
         let data: Vec<Vec<T>> = s.split('\n')
             .filter(|i| !i.is_empty())
             .map(|i| i.chars().map(&mut f).collect())
             .collect();
-        MatrixStruct::from(data)
+        Matrix::from(data)
     }
 }
 
-impl MatrixStruct<char> {
-    fn from_str(s: &str) -> MatrixStruct<char> {
+impl Matrix<char> {
+    pub fn from_str(s: &str) -> Matrix<char> {
         let data: Vec<Vec<char>> = s.split('\n')
             .filter(|i| !i.is_empty())
             .map(|i| i.chars().collect())
             .collect();
-        MatrixStruct::from(data)
+        Matrix::from(data)
     }
 }
 
-impl<T> From<Vec<Vec<T>>> for MatrixStruct<T> {
-    fn from(data: Vec<Vec<T>>) -> MatrixStruct<T> {
-        MatrixStruct{rows: data}
+/// Example:
+/// ```
+/// use aoc::{Matrix, MxPoint};
+/// let v = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
+/// let mat = Matrix::from(v);
+/// assert!(mat.get(MxPoint(0, 0)).is_some());
+/// assert!(mat.get(MxPoint(1, 2)).is_some());
+/// ```
+impl<T> From<Vec<Vec<T>>> for Matrix<T> {
+    fn from(data: Vec<Vec<T>>) -> Matrix<T> {
+        Matrix{rows: data}
     }
 }
 
-pub fn string_to_matrix(s: &String) -> Matrix<char> {
-    let mut matrix: Matrix<char> = vec![];
+/// Example:
+/// ```
+/// use aoc::{Matrix, MxPoint};
+/// let arr = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+/// let mat = Matrix::from(arr);
+/// assert!(mat.get(MxPoint(0, 0)).is_some());
+/// assert!(mat.get(MxPoint(1, 2)).is_some());
+/// ```
+impl<T: Clone, const R: usize, const C: usize> From<[[T; C]; R]> for Matrix<T> {
+    fn from(data: [[T; C]; R]) -> Matrix<T> {
+        Matrix{rows: data.iter().map(|row| row.to_vec()).collect()}
+    }
+}
+
+pub fn string_to_matrix(s: &String) -> MatrixType<char> {
+    let mut matrix: MatrixType<char> = vec![];
     for line in s.split("\n") {
         if line == "" { continue; }
         matrix.push(line.chars().collect());
@@ -52,9 +107,9 @@ pub fn string_to_matrix(s: &String) -> Matrix<char> {
     matrix
 }
 
-pub fn matrix_map<T, F, N>(m: &Matrix<T>, mapfn: F) -> Matrix<N>
+pub fn matrix_map<T, F, N>(m: &MatrixType<T>, mapfn: F) -> MatrixType<N>
     where F: Fn(&T) -> N {
-    let mut mapped: Matrix<N> = vec![];
+    let mut mapped: MatrixType<N> = vec![];
     for row in m.iter() {
         mapped.push(row.iter().map(|i| mapfn(i)).collect());
     }
@@ -62,18 +117,21 @@ pub fn matrix_map<T, F, N>(m: &Matrix<T>, mapfn: F) -> Matrix<N>
     mapped
 }
 
-pub fn matget<T>(m: &Matrix<T>, pt: MxPoint) -> Option<&T> {
+pub fn matget<T>(m: &MatrixType<T>, pt: MxPoint) -> Option<&T> {
     if pt.in_matrix(m) { Some(&m[pt.0 as usize][pt.1 as usize]) }
     else { None }
 }
 
-pub fn matset<T>(m: &mut Matrix<T>, pt: MxPoint, val: T) {
+pub fn matset<T>(m: &mut MatrixType<T>, pt: MxPoint, val: T) {
     if !pt.in_matrix(m) { panic!("Point does not exist in matrix: {pt}"); }
     m[pt.0 as usize][pt.1 as usize] = val;
 }
 
-// Walks through a matrix beginning at `start` and increasing by `step` for as that point is within the matrix's bounds
-pub fn matrix_traverse<T>(m: &Matrix<T>, start: MxPoint, step: MxPoint, bidi: bool) -> HashSet<MxPoint> {
+/// Walks through a matrix beginning at `start` and increasing by `step` for as that point is within the matrix's bounds
+///
+/// # Arguments
+/// * `bidi` - Whether to walk the matrix in both directions from the given starting point.
+pub fn matrix_traverse<T>(m: &MatrixType<T>, start: MxPoint, step: MxPoint, bidi: bool) -> HashSet<MxPoint> {
     let mut pos = start;
     let mut points: HashSet<MxPoint> = HashSet::new();
 
@@ -86,12 +144,21 @@ pub fn matrix_traverse<T>(m: &Matrix<T>, start: MxPoint, step: MxPoint, bidi: bo
     points
 }
 
-pub fn points_adjacent(pt: MxPoint, relative: bool, corners: bool) -> [MxPoint; 5] {
+#[deprecated(note="use `MxPoint::cardinals4` or `MxPoint::cardinals8 instead")]
+pub fn points_adjacent(pt: MxPoint, relative: bool) -> [MxPoint; 5] {
     if relative { return [MxPoint::up(), MxPoint::right(), MxPoint(0, 0), MxPoint::down(), MxPoint::left()]; }
     else { [MxPoint::up() + pt, MxPoint::right() + pt, MxPoint(0, 0) + pt, MxPoint::down() + pt, MxPoint::left() + pt] }
 }
 
 // Points
+/// Represents a point within a [Matrix], as a tuple of `(row, column)`.
+///
+/// Actual matrix points cannot be negative, however [MxPoint]s values are signed to allow using
+/// points for math operations on other points, e.g.
+/// ```
+/// use aoc::MxPoint;
+/// assert_eq!(MxPoint(3, 5) + MxPoint(-2, -1), MxPoint(1, 4));
+/// ```
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct MxPoint(pub isize, pub isize);
 
@@ -118,7 +185,7 @@ impl Into<(usize, usize)> for MxPoint {
 }
 
 impl Display for MxPoint {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "({}, {})", self.0, self.1)
     }
 }
@@ -129,13 +196,18 @@ pub trait MxPointMethods {
     fn down()  -> MxPoint;
     fn left()  -> MxPoint;
 
+    /// Returns cardinal directions N, E, S, W as [MxPoint]s.
+    fn cardinals4() -> [MxPoint; 4];
+    /// Returns cardinal directions N, NE, E, SE, S, SW, W, NW as [MxPoint]s.
+    fn cardinals8() -> [MxPoint; 8];
+
     fn to_above(self, n: isize) -> MxPoint;
     fn to_right(self, n: isize) -> MxPoint;
     fn to_below(self, n: isize) -> MxPoint;
     fn to_left(self, n: isize)  -> MxPoint;
 
     fn turn_90deg(&self) -> MxPoint;
-    fn in_matrix<T>(&self, m: &Matrix<T>) -> bool;
+    fn in_matrix<T>(&self, m: &MatrixType<T>) -> bool;
 }
 
 impl MxPointMethods for MxPoint {
@@ -143,6 +215,16 @@ impl MxPointMethods for MxPoint {
     fn right() -> MxPoint { MxPoint(0, 1) }
     fn down()  -> MxPoint { MxPoint(1, 0) }
     fn left()  -> MxPoint { MxPoint(0, -1) }
+
+    fn cardinals4() -> [MxPoint; 4] { [MxPoint::up(), MxPoint::right(), MxPoint::down(), MxPoint::left()] }
+    fn cardinals8() -> [MxPoint; 8] {
+        [
+            MxPoint::up(), MxPoint::up().to_right(1),
+            MxPoint::right(), MxPoint::right().to_below(1),
+            MxPoint::down(), MxPoint::down().to_left(1),
+            MxPoint::left(), MxPoint::left().to_above(1)
+        ]
+    }
 
     fn to_above(self, n: isize) -> MxPoint { self + (MxPoint::up()    * MxPoint(n, n)) }
     fn to_right(self, n: isize) -> MxPoint { self + (MxPoint::right() * MxPoint(n, n)) }
@@ -159,7 +241,7 @@ impl MxPointMethods for MxPoint {
         }
     }
 
-    fn in_matrix<T>(&self, m: &Matrix<T>) -> bool {
+    fn in_matrix<T>(&self, m: &MatrixType<T>) -> bool {
         let mat_height: usize = m.len();
         let mat_width: usize = m[0].len();
 
