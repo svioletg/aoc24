@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::{collections::HashSet, fmt::{Display, Formatter}, ops};
 
 // Matrices
