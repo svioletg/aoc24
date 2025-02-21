@@ -98,6 +98,7 @@ impl<T: Clone, const R: usize, const C: usize> From<[[T; C]; R]> for Matrix<T> {
 }
 
 // Points
+
 /// Represents a point within a [Matrix], as a tuple of `(row, column)`.
 ///
 /// Actual matrix points cannot be negative, however [MxPoint]s values are signed to allow using
@@ -137,45 +138,46 @@ impl Display for MxPoint {
     }
 }
 
-pub trait MxPointMethods {
-    fn up()    -> MxPoint;
-    fn right() -> MxPoint;
-    fn down()  -> MxPoint;
-    fn left()  -> MxPoint;
+pub trait MxPointDirections {
+    const UP:    MxPoint = MxPoint(-1, 0);
+    const RIGHT: MxPoint = MxPoint(0, 1);
+    const DOWN:  MxPoint = MxPoint(1, 0);
+    const LEFT:  MxPoint = MxPoint(0, -1);
 
     /// Returns cardinal directions N, E, S, W as [MxPoint]s.
     fn cardinals4() -> [MxPoint; 4];
     /// Returns cardinal directions N, NE, E, SE, S, SW, W, NW as [MxPoint]s.
     fn cardinals8() -> [MxPoint; 8];
 
+    /// Returns this point moved upwards `n` times.
     fn to_above(self, n: isize) -> MxPoint;
+    /// Returns this point moved right `n` times.
     fn to_right(self, n: isize) -> MxPoint;
+    /// Returns this point moved upwards `n` times.
     fn to_below(self, n: isize) -> MxPoint;
+    /// Returns this point moved upwards `n` times.
     fn to_left(self, n: isize)  -> MxPoint;
 
+    /// Returns a point turned 90 degrees clockwise.
+    /// Only works will cardinal directions, i.e. [MxPoint::UP], [MxPoint::RIGHT], [MxPoint::DOWN], and [MxPoint::LEFT].
     fn turn_90deg(&self) -> MxPoint;
 }
 
-impl MxPointMethods for MxPoint {
-    fn up()    -> MxPoint { MxPoint(-1, 0) }
-    fn right() -> MxPoint { MxPoint(0, 1) }
-    fn down()  -> MxPoint { MxPoint(1, 0) }
-    fn left()  -> MxPoint { MxPoint(0, -1) }
-
-    fn cardinals4() -> [MxPoint; 4] { [MxPoint::up(), MxPoint::right(), MxPoint::down(), MxPoint::left()] }
+impl MxPointDirections for MxPoint {
+    fn cardinals4() -> [MxPoint; 4] { [MxPoint::UP, MxPoint::RIGHT, MxPoint::DOWN, MxPoint::LEFT] }
     fn cardinals8() -> [MxPoint; 8] {
         [
-            MxPoint::up(), MxPoint::up().to_right(1),
-            MxPoint::right(), MxPoint::right().to_below(1),
-            MxPoint::down(), MxPoint::down().to_left(1),
-            MxPoint::left(), MxPoint::left().to_above(1)
+            MxPoint::UP, MxPoint::UP.to_right(1),
+            MxPoint::RIGHT, MxPoint::RIGHT.to_below(1),
+            MxPoint::DOWN, MxPoint::DOWN.to_left(1),
+            MxPoint::LEFT, MxPoint::LEFT.to_above(1)
         ]
     }
 
-    fn to_above(self, n: isize) -> MxPoint { self + (MxPoint::up()    * MxPoint(n, n)) }
-    fn to_right(self, n: isize) -> MxPoint { self + (MxPoint::right() * MxPoint(n, n)) }
-    fn to_below(self, n: isize) -> MxPoint { self + (MxPoint::down()  * MxPoint(n, n)) }
-    fn to_left(self, n: isize)  -> MxPoint { self + (MxPoint::left()  * MxPoint(n, n)) }
+    fn to_above(self, n: isize) -> MxPoint { self + (MxPoint::UP    * MxPoint(n, n)) }
+    fn to_right(self, n: isize) -> MxPoint { self + (MxPoint::RIGHT * MxPoint(n, n)) }
+    fn to_below(self, n: isize) -> MxPoint { self + (MxPoint::DOWN  * MxPoint(n, n)) }
+    fn to_left(self, n: isize)  -> MxPoint { self + (MxPoint::LEFT  * MxPoint(n, n)) }
 
     fn turn_90deg(&self) -> MxPoint {
         match self {

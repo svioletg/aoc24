@@ -1,5 +1,5 @@
 use std::{collections::{HashMap, HashSet}, env, fs, process};
-use aoc::{Matrix, MxPoint, MxPointMethods};
+use aoc::{Matrix, MxPoint, MxPointDirections};
 
 fn main() {
     #[allow(unused_variables)]
