@@ -3,7 +3,7 @@
 use std::{collections::HashSet, fmt::{Display, Formatter}, ops};
 
 // Matrices
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Matrix<T> {
     pub rows: Vec<Vec<T>>
 }
@@ -25,7 +25,7 @@ impl<T> Matrix<T> {
     ///
     /// Returns [Err] if the point does not exist, [Ok] containing `()` otherwise.
     pub fn set(&mut self, pt: MxPoint, val: T) -> Result<(), String> {
-        if self.get(pt).is_none() { return Err("point does not exist in this matrix".to_string()); }
+        if self.get(pt).is_none() { dbg!("BAD"); return Err("point does not exist in this matrix".to_string()); }
         self.rows[pt.0 as usize][pt.1 as usize] = val;
 
         Ok(())
@@ -49,6 +49,10 @@ impl<T> Matrix<T> {
         }
 
         points
+    }
+
+    pub fn new() -> Matrix<T> {
+        Matrix{rows: vec![]}
     }
 
     pub fn from_str_mapped<F>(s: &str, mut f: F) -> Matrix<T>
@@ -146,6 +150,10 @@ pub trait MxPointDirections {
     const DOWN:  MxPoint = MxPoint(1, 0);
     const LEFT:  MxPoint = MxPoint(0, -1);
 
+    /// Returns a cardinal direction corresponding to the given [char].
+    /// Expects one of `^`, `>`, `v`, or `<`. Other values will return [None].
+    fn char_cardinal(ch: &char) -> Option<MxPoint>;
+
     /// Returns cardinal directions N, E, S, W as [MxPoint]s.
     fn cardinals4() -> [MxPoint; 4];
     /// Returns cardinal directions N, NE, E, SE, S, SW, W, NW as [MxPoint]s.
@@ -166,6 +174,16 @@ pub trait MxPointDirections {
 }
 
 impl MxPointDirections for MxPoint {
+    fn char_cardinal(ch: &char) -> Option<MxPoint> {
+        match ch {
+            '^' => Some(MxPoint::UP),
+            '>' => Some(MxPoint::RIGHT),
+            'v' => Some(MxPoint::DOWN),
+            '<' => Some(MxPoint::LEFT),
+            _ => None
+        }
+    }
+
     fn cardinals4() -> [MxPoint; 4] { [MxPoint::UP, MxPoint::RIGHT, MxPoint::DOWN, MxPoint::LEFT] }
     fn cardinals8() -> [MxPoint; 8] {
         [
