@@ -22,10 +22,13 @@ impl<T> Matrix<T> {
     }
 
     /// Sets the value of an [MxPoint] in this matrix to `val`.
-    ///
-    /// Returns [Err] if the point does not exist, [Ok] containing `()` otherwise.
-    pub fn set(&mut self, pt: MxPoint, val: T) -> Result<(), String> {
-        if self.get(pt).is_none() { dbg!("BAD"); return Err("point does not exist in this matrix".to_string()); }
+    pub fn set(&mut self, pt: MxPoint, val: T) {
+        self.rows[pt.0 as usize][pt.1 as usize] = val;
+    }
+
+    /// Attempts to set the value of an [MxPoint] in this matrix to `val`, returning [Err] if the point does not exist.
+    pub fn try_set(&mut self, pt: MxPoint, val: T) -> Result<(), String> {
+        if self.get(pt).is_none() { return Err(format!("Point does not exist: {}", pt)) }
         self.rows[pt.0 as usize][pt.1 as usize] = val;
 
         Ok(())
@@ -34,7 +37,8 @@ impl<T> Matrix<T> {
     pub fn height(&self) -> usize { self.rows.len() }
     pub fn width(&self) -> usize { self.rows[0].len() }
 
-    /// Walks through this matrix beginning at `start` and increasing by `step` for as long as the point is within the matrix's bounds
+    /// Walks through this matrix beginning at `start` and increasing by `step`
+    /// for as long as the point is within the matrix's bounds.
     ///
     /// # Arguments
     /// * `bidi` - Whether to walk the matrix in both directions from the given starting point.
@@ -66,6 +70,16 @@ impl<T> Matrix<T> {
 }
 
 impl Matrix<char> {
+    pub fn as_string(&self) -> String {
+        let mut s: String = "".to_string();
+        for row in self.rows.iter() {
+            s.push_str(&row.iter().collect::<String>());
+            s.push_str("\n");
+        }
+
+        s
+    }
+
     pub fn from_str(s: &str) -> Matrix<char> {
         let data: Vec<Vec<char>> = s.split('\n')
             .filter(|i| !i.is_empty())

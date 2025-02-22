@@ -20,7 +20,7 @@ fn main() {
 
     println!("Day 15, Part {}", puzzle_part);
 
-    solve_puzzle(sample_in, puzzle_part);
+    solve_puzzle(real_in, puzzle_part);
 }
 
 fn parse_input(puzzle_in: &str) -> (Matrix<char>, Vec<MxPoint>, MxPoint) {
@@ -35,7 +35,7 @@ fn parse_input(puzzle_in: &str) -> (Matrix<char>, Vec<MxPoint>, MxPoint) {
             warehouse_map.rows.push(line.chars().collect());
             if line.contains('@') {
                 robot_pos = Some(MxPoint(
-                    warehouse_map.height() as isize,
+                    warehouse_map.height() as isize - 1,
                     line.chars().position(|i| i == '@').unwrap() as isize
                 ));
             }
@@ -55,7 +55,7 @@ fn predict_robot(src_mat: &Matrix<char>, instructions: &Vec<MxPoint>, robot_star
         let mut ret: Option<MxPoint> = None;
         match mat.get(box_future) {
             Some('#') => ret = None,
-            Some('.') => ret = Some(box_pos),
+            Some('.') => ret = Some(box_future),
             Some('O') => ret = check_boxes(mat, box_future, dirpt),
             Some(other) => panic!("Unexpected character at {}: {}", box_future, other),
             None => panic!("Unexpectedly out of bounds at {}", box_future)
@@ -68,19 +68,19 @@ fn predict_robot(src_mat: &Matrix<char>, instructions: &Vec<MxPoint>, robot_star
     for dirpt in instructions {
         let robot_future = robot_pos + *dirpt;
         match mat.get(robot_future) {
-            Some('#') => continue,
+            Some('#') => { continue},
             Some('.') => {
-                mat.set(robot_pos, '.').expect("Matrix set failed!");
+                mat.set(robot_pos, '.');
                 robot_pos = robot_future;
-                mat.set(robot_pos, '@').expect("Matrix set failed!");
+                mat.set(robot_pos, '@');
             },
             Some('O') => {
                 let result = check_boxes(&mut mat, robot_future, *dirpt);
                 if result.is_some() {
-                    mat.set(robot_pos, '.').expect("Matrix set failed!");
+                    mat.set(robot_pos, '.');
                     robot_pos = robot_future;
-                    mat.set(robot_pos, '@').expect("Matrix set failed!");
-                    mat.set(result.unwrap(), 'O').expect("Matrix set failed!");
+                    mat.set(robot_pos, '@');
+                    mat.set(result.unwrap(), 'O');
                 }
             },
             Some(other) => panic!("Unexpected character at {}: {}", robot_future, other),

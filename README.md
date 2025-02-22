@@ -22,7 +22,7 @@ Most days are separated by part one and two as `day[n]a.[ext]` and `day[n]b.[ext
 |12     |⭐|||⭐|
 |13     |||||
 |14     |⭐|||⭐|
-|15     |⭐||||
+|15     |⭐|||⭐|
 |16     |||||
 |17     |||||
 |18     |||||
