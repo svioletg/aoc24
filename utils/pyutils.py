@@ -4,7 +4,7 @@ from math import floor
 from operator import add, floordiv, mod, mul, neg, sub, truediv
 from pprint import pprint
 from time import perf_counter
-from typing import Any, Literal, Optional, overload
+from typing import Any, Literal, Optional, Self, overload
 
 from colorama import Back, Fore, Style
 from IPython.display import clear_output
@@ -147,6 +147,45 @@ def show_in_matrix(mat: Matrix, *pts: tuple[int, int], col: str = 'white on red'
     return mat_restring(matcopy)
 
 # Points, vectors
+class Pt:
+    def __init__(self, a: int, b: int):
+        self.a = a
+        self.b = b
+
+    def __repr__(self) -> str:
+        return repr(self.as_tuple())
+
+    def __str__(self) -> str:
+        return str(self.as_tuple())
+
+    def __hash__(self) -> int:
+        return hash(self.as_tuple())
+
+    def __getitem__(self, idx: int) -> int:
+        return (self.a, self.b)[idx]
+
+    def __add__(self, other: 'tuple[int, int] | Pt') -> 'Pt':
+        return self._math(add, other, 'l')
+    def __radd__(self, other: 'tuple[int, int] | Pt') -> 'Pt':
+        return self._math(add, other, 'r')
+    def __sub__(self, other: 'tuple[int, int] | Pt') -> 'Pt':
+        return self._math(sub, other, 'l')
+    def __rsub__(self, other: 'tuple[int, int] | Pt') -> 'Pt':
+        return self._math(sub, other, 'r')
+    def __mul__(self, other: 'tuple[int, int] | Pt') -> 'Pt':
+        return self._math(mul, other, 'l')
+    def __rmul__(self, other: 'tuple[int, int] | Pt') -> 'Pt':
+        return self._math(mul, other, 'r')
+
+    def _math(self, mathop: Callable, other: 'tuple[int, int] | Pt', direction: Literal['l', 'r']) -> 'Pt':
+        if direction == 'l':
+            return Pt(mathop(self[0], other[0]), mathop(self[1], other[1]))
+        if direction == 'r':
+            return Pt(mathop(other[0], self[0]), mathop(other[1], self[1]))
+
+    def as_tuple(self) -> tuple[int, int]:
+        return (self.a, self.b)
+
 def point_op(fn: Callable, a: Point, b: int | Point) -> Point:
     """Calls `fn` for each pair of vector values and returns a new vector with the result.
     If `b` is a single integer, it will be converted to a point (e.g. `1` -> `(1, 1)`)
