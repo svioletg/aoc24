@@ -153,7 +153,7 @@ class Pt:
         self.b = b
 
     def __repr__(self) -> str:
-        return repr(self.as_tuple())
+        return f'Pt({self.a}, {self.b})'
 
     def __str__(self) -> str:
         return str(self.as_tuple())
@@ -163,6 +163,9 @@ class Pt:
 
     def __getitem__(self, idx: int) -> int:
         return (self.a, self.b)[idx]
+
+    def __eq__(self, other: 'tuple[int, int] | Pt') -> bool:
+        return (self[0] == other[0]) and (self[1] == other[1])
 
     def __add__(self, other: 'tuple[int, int] | Pt') -> 'Pt':
         return self._math(add, other, 'l')
@@ -185,6 +188,10 @@ class Pt:
 
     def as_tuple(self) -> tuple[int, int]:
         return (self.a, self.b)
+
+    @classmethod
+    def of(cls, tp: tuple[int, int]) -> Self:
+        return cls(tp[0], tp[1])
 
 def point_op(fn: Callable, a: Point, b: int | Point) -> Point:
     """Calls `fn` for each pair of vector values and returns a new vector with the result.
