@@ -189,6 +189,9 @@ class Pt:
     def as_tuple(self) -> tuple[int, int]:
         return (self.a, self.b)
 
+    def distance(self, other: 'tuple[int, int] | Pt') -> int:
+        return sum((abs(self[0] - other[0]), abs(self[1] - other[1])))
+
     def turn90(self, counter: bool = False) -> Self:
         cards = self.cardinals()
         idx = (cards.index(self) + 1) if not counter else (cards.index(self) - 1)
