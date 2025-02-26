@@ -138,12 +138,12 @@ def traverse_matrix(mat: StrMatrix, start: Point, step: Point, bidi: bool = Fals
     pts = sorted(list(set(pts)))
     return pts
 
-def show_in_matrix(mat: Matrix, *pts: tuple[int, int], col: str = 'white on red', colmap: Optional[dict[Point, str]] = None):
+def show_in_matrix(mat: Matrix, *pts: Point, col: str = 'white on red', colmap: Optional[dict[Point, str]] = None):
     """Colors the given location(s) in a matrix and returns it restrung."""
     colmap = colmap or {}
     matcopy = deepcopy(mat)
-    for pt in pts:
-        matset(matcopy, pt, colored(matget(matcopy, pt), col if pt not in colmap else colmap[pt]))
+    for pt in list(pts) + list(colmap.keys()):
+        matset(matcopy, pt, colored(matget(matcopy, pt), colmap.get(pt, col)))
     return mat_restring(matcopy)
 
 # Points, vectors
@@ -189,9 +189,20 @@ class Pt:
     def as_tuple(self) -> tuple[int, int]:
         return (self.a, self.b)
 
+    def turn90(self, counter: bool = False) -> Self:
+        cards = self.cardinals()
+        idx = (cards.index(self) + 1) if not counter else (cards.index(self) - 1)
+        if idx >= len(cards):
+            idx -= len(cards)
+        return cards[idx]
+
     @classmethod
     def of(cls, tp: tuple[int, int]) -> Self:
         return cls(tp[0], tp[1])
+
+    @classmethod
+    def cardinals(cls) -> tuple[Self, Self, Self, Self]:
+        return (cls(-1, 0), cls(0, 1), cls(1, 0), cls(0, -1))
 
 def point_op(fn: Callable, a: Point, b: int | Point) -> Point:
     """Calls `fn` for each pair of vector values and returns a new vector with the result.
