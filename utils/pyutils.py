@@ -8,6 +8,7 @@ from typing import Any, Literal, Optional, Self, overload
 
 from colorama import Back, Fore, Style
 from IPython.display import clear_output
+from PIL import Image, ImageDraw
 
 Matrix = list[list]
 IntMatrix = list[list[int]]
@@ -109,11 +110,11 @@ def matset(mat: Matrix, pt: Point, val: str):
     """Sets the value of a point in `mat` to `val`."""
     mat[pt[0]][pt[1]] = val
 
-def mat_iter(mat: Matrix) -> Generator[tuple[Point, Any], None, None]:
+def mat_iter(mat: Matrix) -> Generator[tuple['Pt', Any], None, None]:
     """Iterates over every item in `mat` by every column in every row, as in (row 0, column 0) -> (row 0, column 1) ->"""
     for n1, row in enumerate(mat):
         for n2, col in enumerate(row):
-            yield ((n1, n2), col)
+            yield (Pt(n1, n2), col)
 
 def traverse_matrix(mat: StrMatrix, start: Point, step: Point, bidi: bool = False) -> list[Point]:
     """Returns all points of a matrix travelled to by beginning at `start`
@@ -145,6 +146,15 @@ def show_in_matrix(mat: Matrix, *pts: Point, col: str = 'white on red', colmap: 
     for pt in list(pts) + list(colmap.keys()):
         matset(matcopy, pt, colored(matget(matcopy, pt), colmap.get(pt, col)))
     return mat_restring(matcopy)
+
+def matimg(mat: Matrix, colmap: dict[Callable[['Pt', Any], bool], str]) -> Image.Image:
+    im = Image.new(mode='RGB', size=(len(mat[0]), len(mat)), color='white')
+    brush = ImageDraw.Draw(im)
+    for pt, val in mat_iter(mat):
+        for flt, col in colmap.items():
+            if flt(pt, val):
+                brush.point((pt[1], pt[0]), col)
+    return im
 
 # Points, vectors
 class Pt:
