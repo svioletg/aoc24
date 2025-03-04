@@ -147,11 +147,12 @@ def show_in_matrix(mat: Matrix, *pts: Point, col: str = 'white on red', colmap: 
         matset(matcopy, pt, colored(matget(matcopy, pt), colmap.get(pt, col)))
     return mat_restring(matcopy)
 
-def matimg(mat: Matrix, colmap: dict[Callable[['Pt', Any], bool], str]) -> Image.Image:
+def matimg(mat: Matrix, colflt: Optional[dict[Callable[['Pt', Any], bool], str]] = None) -> Image.Image:
+    colflt = colflt or {}
     im = Image.new(mode='RGB', size=(len(mat[0]), len(mat)), color='white')
     brush = ImageDraw.Draw(im)
     for pt, val in mat_iter(mat):
-        for flt, col in colmap.items():
+        for flt, col in colflt.items():
             if flt(pt, val):
                 brush.point((pt[1], pt[0]), col)
     return im
@@ -216,6 +217,15 @@ class Pt:
     @classmethod
     def cardinals(cls) -> tuple[Self, Self, Self, Self]:
         return (cls(-1, 0), cls(0, 1), cls(1, 0), cls(0, -1))
+
+    @classmethod
+    def cards8(cls) -> tuple[Self, Self, Self, Self, Self, Self, Self, Self]:
+        return (
+            cls(-1, 0), cls(-1, 1),
+            cls(0, 1), cls(1, 1),
+            cls(1, 0), cls(1, -1),
+            cls(0, -1), cls(1, -1)
+        )
 
 def point_op(fn: Callable, a: Point, b: int | Point) -> Point:
     """Calls `fn` for each pair of vector values and returns a new vector with the result.
