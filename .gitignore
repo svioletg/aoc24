@@ -15,3 +15,7 @@ rust-project.json
 # Added by cargo
 
 /target
+
+# Debugging visualizations & other
+**.gif
+**.mp4

@@ -147,7 +147,10 @@ def show_in_matrix(mat: Matrix, *pts: Point, col: str = 'white on red', colmap: 
         matset(matcopy, pt, colored(matget(matcopy, pt), colmap.get(pt, col)))
     return mat_restring(matcopy)
 
-def matimg(mat: Matrix, colflt: Optional[dict[Callable[['Pt', Any], bool], str]] = None) -> Image.Image:
+def matimg(mat: Matrix,
+        colflt: Optional[dict[Callable[['Pt', Any], bool], str]] = None,
+        resize: Optional[tuple[int, int]] = None
+    ) -> Image.Image:
     colflt = colflt or {}
     im = Image.new(mode='RGB', size=(len(mat[0]), len(mat)), color='white')
     brush = ImageDraw.Draw(im)
@@ -155,6 +158,8 @@ def matimg(mat: Matrix, colflt: Optional[dict[Callable[['Pt', Any], bool], str]]
         for flt, col in colflt.items():
             if flt(pt, val):
                 brush.point((pt[1], pt[0]), col)
+    if resize is not None:
+        im = im.resize(resize, resample=0)
     return im
 
 # Points, vectors
@@ -201,7 +206,7 @@ class Pt:
         return (self.a, self.b)
 
     def distance(self, other: 'tuple[int, int] | Pt') -> int:
-        return sum((abs(self[0] - other[0]), abs(self[1] - other[1])))
+        return (abs(self[0] - other[0]) + abs(self[1] - other[1]))
 
     def turn90(self, counter: bool = False) -> Self:
         cards = self.cardinals()
@@ -257,7 +262,7 @@ def index_from_point(pt: Point, w: int, xy: bool = False) -> int:
 
 def point_in_matrix(pt: Point, mat: Matrix) -> bool:
     """Returns whether `pt` is within the bounds of `mat`."""
-    return (pt[0] in range(0, len(mat))) and (pt[1] in range(0, len(mat[1])))
+    return (pt[0] in range(0, len(mat))) and (pt[1] in range(0, len(mat[0])))
 
 def points_adjacent(pt: Point, mat: Matrix,
         allow_oob: bool = True,
