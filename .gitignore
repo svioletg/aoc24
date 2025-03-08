@@ -6,6 +6,7 @@ inputs/
 */ans_b.txt
 .virtual_documents/
 rust-project.json
+.mypy_cache/
 
 # Compiled outputs
 **/bin/
