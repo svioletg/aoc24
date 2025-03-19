@@ -7,6 +7,7 @@ inputs/
 .virtual_documents/
 rust-project.json
 .mypy_cache/
+day*_*
 
 # Compiled outputs
 **/bin/

@@ -1,16 +1,15 @@
 import Data.List
-import Text.Printf
 
 count :: Eq a => [a] -> a -> Int
-count arr target = length [i | i <- arr, i == target]
+count lst target = length $ filter (== target) lst
 
 main = do
     puzzle <- readFile "../input.txt"
-    let locids = [map read (words i) :: [Integer] | i <- lines puzzle]
-    let left = sort [i !! 0 | i <- locids]
-    let right = sort [i !! 1 | i <- locids]
-    let dist = sum [abs (fst i - snd i) | i <- zip left right]
-    let simscore = sum [i * fromIntegral (count right i) | i <- left]
+    let locids::[[Int]] = map (map read . words) . lines $ puzzle
+    let left::[Int] = sort $ map head locids
+    let right::[Int] = sort $ map (!! 1) locids
+    let dist::Int = sum $ map abs $ zipWith (-) left right
+    let simscore::Int = sum $ map (\i -> i * count right i) left
 
     print "Day 1, Part 1"
     print dist
