@@ -9,7 +9,7 @@ Most days are separated by part one and two as `day[n]a.[ext]` and `day[n]b.[ext
 | Day # | Python | Lua | TypeScript | Rust | C# | Haskell |
 | :-:   | :-:    | :-: | :-:        | :-:  | :-:| :-:     |
 |1      |⭐⭐|⭐⭐|⭐⭐|⭐⭐||⭐⭐|
-|2      |⭐|||⭐|||
+|2      |⭐|||⭐||⭐|
 |3      |⭐⭐|||⭐⭐|||
 |4      |⭐⭐||||||
 |5      |⭐⭐|||⭐⭐|||
