@@ -3,7 +3,7 @@ module Main where
 pairwise :: [a] -> [(a, a)]
 pairwise [] = []
 pairwise [_] = []
-pairwise (x:y:xs) = (x, y):pairwise (y:xs)
+pairwise (x:y:xs) = (x, y) : pairwise (y:xs)
 
 stableDir :: [Int] -> Bool
 stableDir [] = True
@@ -15,7 +15,6 @@ stableDir lst = do
 
 main :: IO ()
 main = do
-    -- puzzle <- readFile "../input.txt"
     puzzle <- readFile "../input.txt"
     let reps = map (map read . words) . lines $ puzzle :: [[Int]]
     let safe = filter stableDir reps
